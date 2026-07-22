@@ -17,13 +17,15 @@ class JenisKeripik extends Model
         'deskripsi',
         'harga_jual',
         'satuan',
+        'berat',        
         'gambar',
     ];
 
     // Relasi ke StokKeripik (HASIL)
-    public function stokKeripik()
+   
+    public function stok()
     {
-        return $this->hasMany(StokeKeripik::class, 'jenis_keripik_id');
+        return $this->hasOne(StokeKeripik::class, 'jenis_keripik_id');
     }
 
     // Relasi ke Komposisi

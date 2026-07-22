@@ -54,33 +54,89 @@ class StokBahanBakuController extends Controller
      */
     public function store(Request $request)
     {
+        
         $request->validate([
-            'bahan_baku_id' => 'required|exists:bahan_baku,id',
-            'jumlah_stok' => 'required|numeric|min:0',
-            'jumlah_masuk' => 'required|numeric|min:0',
-            'jumlah_keluar' => 'required|numeric|min:0',
-            'tanggal_update' => 'required|date',
+            'nama_bahan' => 'required|string|max:50',
+            'satuan' => 'required|string|max:20',
+            'harga_satuan' => 'required|numeric|min:0',
+            'berat' => 'required|integer|min:0',
+            'supplier' => 'nullable|string|max:50',
+            'stok_awal' => 'nullable|numeric|min:0' // Opsional stok awal
         ]);
 
-        // Hitung stok: stok = stok + masuk - keluar
-        $jumlahStok = $request->jumlah_stok + $request->jumlah_masuk - $request->jumlah_keluar;
+        \DB::beginTransaction();
+        try {
+            // 1. Create bahan baku
+            $bahanBaku = BahanBaku::create($request->except('stok_awal'));
 
-        // Cek apakah stok tidak negatif
-        if ($jumlahStok < 0) {
-            return back()->with('error', 'Stok akhir tidak boleh negatif!');
+            // 2. Create stok dengan stok awal
+            $stokAwal = $request->stok_awal ?? 0;
+            StokBahanBaku::create([
+                'bahan_baku_id' => $bahanBaku->id,
+                'jumlah_stok' => $stokAwal,
+                'jumlah_masuk' => $stokAwal,
+                'jumlah_keluar' => 0,
+                'tanggal_update' => now()
+            ]);
+
+            // 3. Catat transaksi jika stok awal > 0
+            if ($stokAwal > 0) {
+                StokTransaksi::create([
+                    'bahan_baku_id' => $bahanBaku->id,
+                    'jenis_transaksi' => 'masuk',
+                    'jumlah' => $stokAwal,
+                    'stok_sebelum' => 0,
+                    'stok_sesudah' => $stokAwal,
+                    'keterangan' => 'Stok awal',
+                    'user_id' => auth()->id(),
+                    'tanggal_transaksi' => now()
+                ]);
+            }
+
+            \DB::commit();
+
+            return redirect()->route('bahan-baku.index')
+                           ->with('success', 'Bahan baku berhasil ditambahkan!');
+
+        } catch (\Exception $e) {
+            \DB::rollback();
+            return redirect()->back()
+                           ->with('error', 'Gagal menambahkan bahan baku: ' . $e->getMessage())
+                           ->withInput();
         }
+    }
 
-        StokBahanBaku::create([
-            'bahan_baku_id' => $request->bahan_baku_id,
-            'jumlah_stok' => $jumlahStok,
-            'jumlah_masuk' => $request->jumlah_masuk,
-            'jumlah_keluar' => $request->jumlah_keluar,
-            'tanggal_update' => $request->tanggal_update,
+    // Tambah stok manual
+    public function tambahStok(Request $request, $id)
+    {
+        $request->validate([
+            'jumlah' => 'required|numeric|min:0.01',
+            'keterangan' => 'nullable|string'
         ]);
 
-        return redirect()->route('stok-bahan-baku.index')
-            ->with('success', 'Data stok bahan baku berhasil ditambahkan!');
+        \DB::beginTransaction();
+        try {
+            $stok = StokBahanBaku::where('bahan_baku_id', $id)->firstOrFail();
+            $stok->tambahStok(
+                $request->jumlah,
+                $request->keterangan ?? 'Penambahan stok manual',
+                auth()->id()
+            );
+
+            \DB::commit();
+
+            return redirect()->back()
+                           ->with('success', 'Stok berhasil ditambahkan!');
+
+        } catch (\Exception $e) {
+            \DB::rollback();
+            return redirect()->back()
+                           ->with('error', 'Gagal menambah stok: ' . $e->getMessage());
+        }
     }
+
+    
+    
 
     /**
      * Display the specified resource.

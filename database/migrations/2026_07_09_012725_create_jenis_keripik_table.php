@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('deskripsi')->nullable();
             $table->decimal('harga_jual', 10, 2);
             $table->string('satuan', 20)->default('pcs');
+            $table->integer('berat');
             $table->string('gambar')->nullable();
             $table->timestamps();
         });

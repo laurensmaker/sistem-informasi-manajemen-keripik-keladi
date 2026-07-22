@@ -16,6 +16,7 @@ class BahanBaku extends Model
         'satuan',
         'harga_satuan',
         'supplier',
+        'berat',
     ];
 
     // Accessor untuk format harga
@@ -28,5 +29,19 @@ class BahanBaku extends Model
     public function setHargaSatuanAttribute($value)
     {
         $this->attributes['harga_satuan'] = str_replace(',', '', $value);
+    }
+     public function stok()
+    {
+        return $this->hasOne(StokBahanBaku::class);
+    }
+
+    public function komposisi()
+    {
+        return $this->hasMany(Komposisi::class);
+    }
+
+    public function stokTransaksi()
+    {
+        return $this->hasMany(StokTransaksi::class);
     }
 }

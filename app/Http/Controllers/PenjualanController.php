@@ -105,14 +105,27 @@ class PenjualanController extends Controller
                     throw new \Exception("Produk tidak ditemukan!");
                 }
 
-                // Cek stok
-                $stok = StokeKeripik::where('jenis_keripik_id', $item['jenis_keripik_id'])
-                    ->latest('tanggal_update')
-                    ->first();
+                // Cek dan kurangi stok
+                $stok = StokeKeripik::where('jenis_keripik_id', $item['jenis_keripik_id'])->first();
 
-                if (!$stok || $stok->jumlah_stok < $item['jumlah']) {
-                    throw new \Exception("Stok {$jenisKeripik->nama_jenis} tidak mencukupi! Stok tersisa: " . ($stok->jumlah_stok ?? 0));
+                if (!$stok) {
+                    throw new \Exception("Stok untuk {$jenisKeripik->nama_jenis} belum tersedia!");
                 }
+
+                // Validasi stok (integer)
+                if ($stok->jumlah_stok < $item['jumlah']) {
+                    throw new \Exception(
+                        "Stok {$jenisKeripik->nama_jenis} tidak mencukupi! " .
+                        "Stok tersedia: {$stok->jumlah_stok}, " .
+                        "Diminta: {$item['jumlah']}"
+                    );
+                }
+
+                // Gunakan method dari model untuk kurangi stok
+                $stok->kurangiStok(
+                    $item['jumlah'], 
+                    "Penjualan - Pembeli: {$request->nama_pembeli}"
+                );
 
                 $subtotal = $jenisKeripik->harga_jual * $item['jumlah'];
                 $totalHarga += $subtotal;
@@ -123,18 +136,14 @@ class PenjualanController extends Controller
                     'harga_satuan' => $jenisKeripik->harga_jual,
                     'subtotal' => $subtotal,
                 ];
-
-                // Kurangi stok
-                $stok->update([
-                    'jumlah_stok' => $stok->jumlah_stok - $item['jumlah'],
-                    'jumlah_keluar' => $stok->jumlah_keluar + $item['jumlah'],
-                    'tanggal_update' => now(),
-                ]);
             }
+
+            // Generate no_transaksi
+            $no_transaksi = 'TRX-' . date('Ymd') . '-' . str_pad(Penjualan::count() + 1, 4, '0', STR_PAD_LEFT);
 
             // Create penjualan
             $penjualan = Penjualan::create([
-                'no_transaksi' => $request->no_transaksi,
+                'no_transaksi' => $no_transaksi,
                 'tanggal' => $request->tanggal,
                 'nama_pembeli' => $request->nama_pembeli,
                 'no_hp_pembeli' => $request->no_hp_pembeli,
@@ -153,6 +162,11 @@ class PenjualanController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Penjualan berhasil disimpan!',
+                'data' => [
+                    'penjualan' => $penjualan,
+                    'no_transaksi' => $no_transaksi,
+                    'total_harga' => $totalHarga
+                ],
                 'redirect' => route('penjualan.show', $penjualan->id)
             ]);
 

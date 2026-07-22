@@ -32,7 +32,7 @@
                             </tr>
                             <tr>
                                 <th>Tanggal</th>
-                                <td>{{ $penjualan->tanggal_formatted }}</td>
+                                <td>{{ $penjualan->tanggal }}</td>
                             </tr>
                             <tr>
                                 <th>Pembeli</th>
@@ -50,7 +50,7 @@
                                 <th width="150">Status</th>
                                 <td>
                                     <span class="{{ $penjualan->status_badge }}" style="font-size: 14px;">
-                                        {{ $penjualan->status_label }}
+                                        {{ $penjualan->status }}
                                     </span>
                                 </td>
                             </tr>
@@ -61,7 +61,7 @@
                             <tr>
                                 <th>Total</th>
                                 <td>
-                                    <h5 class="fw-bold text-primary">{{ $penjualan->total_harga_formatted }}</h5>
+                                    <h5 class="fw-bold text-primary">{{ $penjualan->total_harga }}</h5>
                                 </td>
                             </tr>
                         </table>

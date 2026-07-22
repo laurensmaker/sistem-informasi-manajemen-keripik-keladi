@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('jumlah_stok')->default(0);
             $table->integer('jumlah_masuk')->default(0);
             $table->integer('jumlah_keluar')->default(0);
+             $table->string('kode_keripik', 10)->unique();
             $table->dateTime('tanggal_update');
             $table->timestamps();
         });

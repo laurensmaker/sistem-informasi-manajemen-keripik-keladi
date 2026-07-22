@@ -2,18 +2,167 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Penjualan;
+use App\Models\BahanBaku;
 use App\Models\JenisKeripik;
 use App\Models\Komposisi;
-use App\Models\BahanBaku;
+use App\Models\Penjualan;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+
 
 class LaporanController extends Controller
 {
-    /**
-     * Laporan Laba Rugi
-     */
+   public function index()
+    {
+        return view('laporan.index');
+    }
+
+    // ============= LAPORAN PENJUALAN =============
+    public function laporanPenjualan()
+    {
+        return view('laporan.penjualan');
+    }
+
+    public function downloadPenjualanPDF(Request $request)
+    {
+        $request->validate([
+            'dari_tanggal' => 'nullable|date',
+            'sampai_tanggal' => 'nullable|date|after_or_equal:dari_tanggal',
+        ]);
+
+        // Query dengan relasi yang benar
+        $query = Penjualan::with(['details.jenisKeripik', 'user']);
+
+        // Filter tanggal
+        if ($request->filled('dari_tanggal') && $request->filled('sampai_tanggal')) {
+            $query->whereBetween('tanggal', [
+                $request->dari_tanggal . ' 00:00:00', 
+                $request->sampai_tanggal . ' 23:59:59'
+            ]);
+        } else {
+            // Default: hari ini
+            $query->whereDate('tanggal', today());
+        }
+
+        $penjualan = $query->orderBy('tanggal', 'desc')->get();
+
+        // Debug: Cek apakah ada data
+        // dd($penjualan); // Uncomment untuk debug
+
+        // Jika tidak ada data, tetap tampilkan dengan pesan
+        $totalPenjualan = $penjualan->sum('total_harga');
+        $totalItems = $penjualan->sum(function($item) {
+            return $item->details->sum('jumlah');
+        });
+
+        $data = [
+            'title' => 'LAPORAN PENJUALAN',
+            'subtitle' => 'Periode: ' . ($request->filled('dari_tanggal') ? date('d/m/Y', strtotime($request->dari_tanggal)) : date('d/m/Y')) . 
+                         ' - ' . ($request->filled('sampai_tanggal') ? date('d/m/Y', strtotime($request->sampai_tanggal)) : date('d/m/Y')),
+            'penjualan' => $penjualan,
+            'totalPenjualan' => $totalPenjualan,
+            'totalItems' => $totalItems,
+            'totalTransaksi' => $penjualan->count(),
+            'tanggal_cetak' => date('d/m/Y H:i:s'),
+            'dari_tanggal' => $request->dari_tanggal,
+            'sampai_tanggal' => $request->sampai_tanggal,
+        ];
+
+        $pdf = Pdf::loadView('laporan.pdf.penjualan', $data);
+        $pdf->setPaper('A4', 'landscape');
+        $pdf->setOptions([
+            'defaultFont' => 'sans-serif',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+        ]);
+        
+        return $pdf->download('laporan-penjualan-' . date('Y-m-d') . '.pdf');
+    }
+
+    // ============= LAPORAN JENIS KERIPIK DENGAN STOK =============
+    public function laporanJenisKeripik()
+    {
+        return view('laporan.jenis-keripik');
+    }
+
+    public function downloadJenisKeripikPDF()
+{
+    $jenisKeripik = JenisKeripik::with(['stok', 'komposisi.bahanBaku'])->get();
+
+    // DEBUG: Cek data
+    // dd($jenisKeripik->first()->stok); // Lihat apakah stok ada
+
+    $totalStok = 0;
+    foreach ($jenisKeripik as $item) {
+        // Cek apakah relasi stok ada
+        if ($item->stok) {
+            $totalStok += $item->stok->jumlah_stok;
+        }
+    }
+
+    $totalJenis = $jenisKeripik->count();
+
+    $data = [
+        'title' => 'LAPORAN JENIS KERIPIK & STOK',
+        'subtitle' => 'Data Seluruh Jenis Keripik dan Stok Tersedia',
+        'jenisKeripik' => $jenisKeripik,
+        'totalStok' => $totalStok,
+        'totalJenis' => $totalJenis,
+        'tanggal_cetak' => date('d/m/Y H:i:s'),
+    ];
+
+    $pdf = Pdf::loadView('laporan.pdf.jenis-keripik', $data);
+    $pdf->setPaper('A4', 'landscape');
+    $pdf->setOptions([
+        'defaultFont' => 'sans-serif',
+        'isHtml5ParserEnabled' => true,
+        'isRemoteEnabled' => true,
+    ]);
+    
+    return $pdf->download('laporan-jenis-keripik-' . date('Y-m-d') . '.pdf');
+}
+
+    // ============= LAPORAN BAHAN BAKU DENGAN STOK =============
+    public function laporanBahanBaku()
+    {
+        return view('laporan.bahan-baku');
+    }
+
+    public function downloadBahanBakuPDF()
+    {
+        $bahanBaku = BahanBaku::with('stok')->get();
+
+        $totalStok = $bahanBaku->sum(function($item) {
+            return $item->stok->jumlah_stok ?? 0;
+        });
+
+        $totalBahan = $bahanBaku->count();
+        $totalNilaiStok = $bahanBaku->sum(function($item) {
+            return ($item->stok->jumlah_stok ?? 0) * $item->harga_satuan;
+        });
+
+        $data = [
+            'title' => 'LAPORAN BAHAN BAKU & STOK',
+            'subtitle' => 'Data Seluruh Bahan Baku dan Stok Tersedia',
+            'bahanBaku' => $bahanBaku,
+            'totalStok' => $totalStok,
+            'totalBahan' => $totalBahan,
+            'totalNilaiStok' => $totalNilaiStok,
+            'tanggal_cetak' => date('d/m/Y H:i:s'),
+        ];
+
+        $pdf = Pdf::loadView('laporan.pdf.bahan-baku', $data);
+        $pdf->setPaper('A4', 'landscape');
+        $pdf->setOptions([
+            'defaultFont' => 'sans-serif',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+        ]);
+        
+        return $pdf->download('laporan-bahan-baku-' . date('Y-m-d') . '.pdf');
+    }
+
+
     public function labaRugi(Request $request)
     {
         $query = Penjualan::with(['details.jenisKeripik', 'user'])
@@ -112,118 +261,9 @@ class LaporanController extends Controller
     }
 
     /**
-     * Laporan Keuntungan per Produk
-     */
-    public function keuntunganProduk(Request $request)
-    {
-        $query = Penjualan::with(['details.jenisKeripik'])
-            ->where('status', 'selesai');
-
-        if ($request->filled('start_date')) {
-            $query->whereDate('tanggal', '>=', $request->start_date);
-        }
-        if ($request->filled('end_date')) {
-            $query->whereDate('tanggal', '<=', $request->end_date);
-        }
-
-        $penjualan = $query->get();
-
-        $dataProduk = [];
-        foreach ($penjualan as $p) {
-            foreach ($p->details as $detail) {
-                $namaProduk = $detail->jenisKeripik->nama_jenis ?? 'Unknown';
-                if (!isset($dataProduk[$namaProduk])) {
-                    $dataProduk[$namaProduk] = [
-                        'nama' => $namaProduk,
-                        'qty' => 0,
-                        'pendapatan' => 0,
-                        'hpp' => 0,
-                        'laba' => 0,
-                        'margin' => 0,
-                    ];
-                }
-                
-                $qty = $detail->jumlah;
-                $pendapatan = $detail->subtotal;
-                
-                // Hitung HPP produk
-                $hppProduk = 0;
-                $komposisi = Komposisi::where('jenis_keripik_id', $detail->jenis_keripik_id)->get();
-                foreach ($komposisi as $kom) {
-                    $hargaBahan = $kom->bahanBaku->harga_satuan ?? 0;
-                    $hppProduk += $kom->jumlah_dibutuhkan * $hargaBahan;
-                }
-                $totalHppProduk = $hppProduk * $qty;
-                $laba = $pendapatan - $totalHppProduk;
-                $margin = $pendapatan > 0 ? ($laba / $pendapatan) * 100 : 0;
-
-                $dataProduk[$namaProduk]['qty'] += $qty;
-                $dataProduk[$namaProduk]['pendapatan'] += $pendapatan;
-                $dataProduk[$namaProduk]['hpp'] += $totalHppProduk;
-                $dataProduk[$namaProduk]['laba'] += $laba;
-                $dataProduk[$namaProduk]['margin'] = $dataProduk[$namaProduk]['pendapatan'] > 0 
-                    ? ($dataProduk[$namaProduk]['laba'] / $dataProduk[$namaProduk]['pendapatan']) * 100 
-                    : 0;
-            }
-        }
-
-        // Sort by laba tertinggi
-        usort($dataProduk, function($a, $b) {
-            return $b['laba'] <=> $a['laba'];
-        });
-
-        return view('laporan.keuntungan-produk', compact('dataProduk'));
-    }
-
-    /**
-     * Laporan Keuntungan per Bahan Baku
-     */
-    public function keuntunganBahan(Request $request)
-    {
-        $query = Penjualan::with(['details.jenisKeripik'])
-            ->where('status', 'selesai');
-
-        if ($request->filled('start_date')) {
-            $query->whereDate('tanggal', '>=', $request->start_date);
-        }
-        if ($request->filled('end_date')) {
-            $query->whereDate('tanggal', '<=', $request->end_date);
-        }
-
-        $penjualan = $query->get();
-
-        $dataBahan = [];
-        foreach ($penjualan as $p) {
-            foreach ($p->details as $detail) {
-                $komposisi = Komposisi::where('jenis_keripik_id', $detail->jenis_keripik_id)->get();
-                foreach ($komposisi as $kom) {
-                    $namaBahan = $kom->bahanBaku->nama_bahan ?? 'Unknown';
-                    if (!isset($dataBahan[$namaBahan])) {
-                        $dataBahan[$namaBahan] = [
-                            'nama' => $namaBahan,
-                            'satuan' => $kom->bahanBaku->satuan ?? '-',
-                            'total_terpakai' => 0,
-                            'total_biaya' => 0,
-                            'harga_satuan' => $kom->bahanBaku->harga_satuan ?? 0,
-                        ];
-                    }
-                    $jumlahTerpakai = $kom->jumlah_dibutuhkan * $detail->jumlah;
-                    $dataBahan[$namaBahan]['total_terpakai'] += $jumlahTerpakai;
-                    $dataBahan[$namaBahan]['total_biaya'] += $jumlahTerpakai * ($kom->bahanBaku->harga_satuan ?? 0);
-                }
-            }
-        }
-
-        // Sort by total biaya tertinggi
-        usort($dataBahan, function($a, $b) {
-            return $b['total_biaya'] <=> $a['total_biaya'];
-        });
-
-        return view('laporan.keuntungan-bahan', compact('dataBahan'));
-    }
-
-    /**
-     * Dashboard Laporan Keuangan
+     * Display the financial dashboard.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function dashboardKeuangan()
     {
@@ -295,35 +335,5 @@ class LaporanController extends Controller
         ));
     }
 
-    /**
-     * Cetak Laporan Laba Rugi PDF
-     */
-    public function printLabaRugi(Request $request)
-    {
-        // Sama seperti method labaRugi tapi untuk print
-        $query = Penjualan::with(['details.jenisKeripik', 'user'])
-            ->where('status', 'selesai');
 
-        if ($request->filled('start_date')) {
-            $query->whereDate('tanggal', '>=', $request->start_date);
-        }
-        if ($request->filled('end_date')) {
-            $query->whereDate('tanggal', '<=', $request->end_date);
-        }
-
-        $penjualan = $query->latest('tanggal')->get();
-        
-        $totalPendapatan = $penjualan->sum('total_harga');
-        $totalHpp = $penjualan->sum(function($item) {
-            return $item->hpp;
-        });
-        $totalLaba = $totalPendapatan - $totalHpp;
-
-        return view('laporan.print-laba-rugi', compact(
-            'penjualan',
-            'totalPendapatan',
-            'totalHpp',
-            'totalLaba'
-        ));
-    }
 }

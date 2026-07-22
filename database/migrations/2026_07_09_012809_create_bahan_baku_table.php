@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nama_bahan', 50);
             $table->string('satuan', 20);
             $table->decimal('harga_satuan', 10, 2);
+            $table->integer('berat');
             $table->string('supplier', 50)->nullable();
             $table->timestamps();
         });

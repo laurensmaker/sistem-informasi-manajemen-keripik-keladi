@@ -8,9 +8,9 @@
         <a href="{{ route('stok-keripik.laporan') }}" class="btn btn-info btn-sm">
             <i data-feather="file-text"></i> Laporan
         </a>
-        <a href="{{ route('stok-keripik.create') }}" class="btn btn-primary btn-sm">
+        {{-- <a href="{{ route('stok-keripik.create') }}" class="btn btn-primary btn-sm">
             <i data-feather="plus"></i> Tambah Stok
-        </a>
+        </a> --}}
     </div>
 </div>
 
@@ -71,7 +71,7 @@
                         <th>Stok Keluar</th>
                         <th>Tanggal Update</th>
                         {{-- <th>Diupdate Oleh</th> --}}
-                        <th>Aksi</th>
+                        {{-- <th>Aksi</th> --}}
                     </tr>
                 </thead>
                 <tbody>
@@ -92,10 +92,10 @@
                             </td>
                             <td>{{ $item->tanggal_update->format('d/m/Y H:i') }}</td>
                             {{-- <td>{{ $item->user->name ?? '-' }}</td> --}}
-                            <td>
-                                {{-- <a href="{{ route('stok-keripik.show', $item->id) }}" class="btn btn-info btn-sm">
+                            {{-- <td>
+                                <a href="{{ route('stok-keripik.show', $item->id) }}" class="btn btn-info btn-sm">
                                     <i data-feather="eye"></i>
-                                </a> --}}
+                                </a>
                                 <a href="{{ route('stok-keripik.edit', $item->id) }}" class="btn btn-warning btn-sm">
                                     <i data-feather="edit-2"></i>
                                 </a>
@@ -106,7 +106,7 @@
                                         <i data-feather="trash-2"></i>
                                     </button>
                                 </form>
-                            </td>
+                            </td> --}}
                         </tr>
                     @empty
                         <tr>

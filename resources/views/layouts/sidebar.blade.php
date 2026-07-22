@@ -47,7 +47,7 @@
                 <li class="menu-item {{ request()->routeIs('komposisi.*') ? 'active' : '' }}">
                     <a href="{{ route('komposisi.index') }}" class="menu-link">
                         <i data-feather="git-merge" class="menu-icon tf-icons"></i>
-                        <span class="title">Komposisi</span>
+                        <span class="title">Biaya Produksi</span>
                     </a>
                 </li>
 
@@ -92,38 +92,35 @@
                     <span class="menu-title-text">LAPORAN</span>
                 </li>
 
+                <li class="menu-item {{ request()->routeIs('laporan.index') ? 'active' : '' }}">
+                    <a href="{{ route('laporan.index') }}" class="menu-link">
+                        <i data-feather="file-text" class="menu-icon tf-icons"></i>
+                        <span class="title">Lihat Laporan</span>
+                    </a>
+                </li>
+
                 <!-- Laporan Laba Rugi -->
-                <li class="menu-item {{ request()->routeIs('laporan.laba-rugi') ? 'active' : '' }}">
-                    <a href="{{ route('laporan.laba-rugi') }}" class="menu-link">
+                <li class="menu-item {{ request()->routeIs('laba-rugi') ? 'active' : '' }}">
+                    <a href="{{ route('laba-rugi') }}" class="menu-link">
                         <i data-feather="trending-up" class="menu-icon tf-icons"></i>
                         <span class="title">Laba Rugi</span>
                     </a>
                 </li>
 
-                <!-- Laporan Keuntungan Produk -->
-                <li class="menu-item {{ request()->routeIs('laporan.keuntungan-produk') ? 'active' : '' }}">
-                    <a href="{{ route('laporan.keuntungan-produk') }}" class="menu-link">
-                        <i data-feather="award" class="menu-icon tf-icons"></i>
-                        <span class="title">Keuntungan Produk</span>
-                    </a>
-                </li>
 
                 <!-- Dashboard Keuangan -->
                 <li class="menu-item {{ request()->routeIs('laporan.dashboard-keuangan') ? 'active' : '' }}">
-                    <a href="{{ route('laporan.dashboard-keuangan') }}" class="menu-link">
+                    <a href="{{ route('dashboard-keuangan') }}" class="menu-link">
                         <i data-feather="bar-chart-2" class="menu-icon tf-icons"></i>
                         <span class="title">Dashboard Keuangan</span>
                     </a>
                 </li>
+
+                
             @endif
 
             <!-- Laporan Penjualan -->
-            {{-- <li class="menu-item {{ request()->routeIs('laporan.penjualan') ? 'active' : '' }}">
-                <a href="{{ route('laporan.penjualan') }}" class="menu-link">
-                    <i data-feather="file-text" class="menu-icon tf-icons"></i>
-                    <span class="title">Laporan Penjualan</span>
-                </a>
-            </li> --}}
+            
 
             <!-- Menu MANAJEMEN USER (Hanya untuk Owner) -->
             @if(auth()->check() && auth()->user()->isOwner())

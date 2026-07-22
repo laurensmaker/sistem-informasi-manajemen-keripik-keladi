@@ -16,6 +16,7 @@ class StokBahanBaku extends Model
         'jumlah_stok',
         'jumlah_masuk',
         'jumlah_keluar',
+        'kode_bahan',
         'tanggal_update',
     ];
 
@@ -70,5 +71,62 @@ class StokBahanBaku extends Model
     public function scopeStokKritis($query, $minimum = 10)
     {
         return $query->where('jumlah_stok', '<', $minimum);
+    }
+
+
+    // Method untuk tambah stok
+    public function tambahStok($jumlah, $keterangan = null, $userId = null)
+    {
+        $this->jumlah_stok += $jumlah;
+        $this->jumlah_masuk += $jumlah;
+        $this->tanggal_update = now();
+        $this->save();
+
+        // Catat transaksi
+        StokTransaksi::create([
+            'bahan_baku_id' => $this->bahan_baku_id,
+            'jenis_transaksi' => 'masuk',
+            'jumlah' => $jumlah,
+            'stok_sebelum' => $this->jumlah_stok - $jumlah,
+            'stok_sesudah' => $this->jumlah_stok,
+            'keterangan' => $keterangan,
+            'user_id' => $userId ?? auth()->id(),
+            'tanggal_transaksi' => now()
+        ]);
+
+        return $this;
+    }
+
+    // Method untuk kurangi stok
+    public function kurangiStok($jumlah, $keterangan = null, $userId = null)
+    {
+        if ($this->jumlah_stok < $jumlah) {
+            throw new \Exception("Stok tidak mencukupi! Stok tersedia: {$this->jumlah_stok}, Dibutuhkan: {$jumlah}");
+        }
+
+        $this->jumlah_stok -= $jumlah;
+        $this->jumlah_keluar += $jumlah;
+        $this->tanggal_update = now();
+        $this->save();
+
+        // Catat transaksi
+        StokTransaksi::create([
+            'bahan_baku_id' => $this->bahan_baku_id,
+            'jenis_transaksi' => 'keluar',
+            'jumlah' => $jumlah,
+            'stok_sebelum' => $this->jumlah_stok + $jumlah,
+            'stok_sesudah' => $this->jumlah_stok,
+            'keterangan' => $keterangan,
+            'user_id' => $userId ?? auth()->id(),
+            'tanggal_transaksi' => now()
+        ]);
+
+        return $this;
+    }
+
+    // Cek ketersediaan stok
+    public function cekStokTersedia($jumlah)
+    {
+        return $this->jumlah_stok >= $jumlah;
     }
 }

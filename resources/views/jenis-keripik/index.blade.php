@@ -34,8 +34,8 @@
                         <th>Nama Jenis</th>
                         <th>Deskripsi</th>
                         <th>Harga Jual</th>
+                        <th>Berat</th>
                         <th>Satuan</th>
-                        <th>Dibuat</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -56,14 +56,15 @@
                             <td>{{ $item->nama_jenis }}</td>
                             <td>{{ Str::limit($item->deskripsi, 50) }}</td>
                             <td>Rp {{ number_format($item->harga_jual, 0, ',', '.') }}</td>
+                            <td>{{ $item->berat }} Gram</td>
                             <td>
                                 <span class="badge bg-info">{{ $item->satuan }}</span>
                             </td>
-                            <td>{{ $item->created_at->format('d/m/Y H:i') }}</td>
+                            {{-- <td>{{ $item->created_at->format('d/m/Y H:i') }}</td> --}}
                             <td>
-                                <a href="{{ route('jenis-keripik.edit', $item->id) }}" class="btn btn-warning btn-sm">
+                                {{-- <a href="{{ route('jenis-keripik.edit', $item->id) }}" class="btn btn-warning btn-sm">
                                     <i data-feather="edit-2"></i>
-                                </a>
+                                </a> --}}
                                 <form action="{{ route('jenis-keripik.destroy', $item->id) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')

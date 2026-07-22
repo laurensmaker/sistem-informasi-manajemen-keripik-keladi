@@ -33,8 +33,8 @@
                         <th>Nama Bahan</th>
                         <th>Satuan</th>
                         <th>Harga Satuan</th>
+                        <th>Berat</th>
                         <th>Supplier</th>
-                        <th>Dibuat</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -47,8 +47,9 @@
                                 <span class="badge bg-info">{{ $item->satuan }}</span>
                             </td>
                             <td>Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
+                            <td>{{ $item->berat }} kg</td>
                             <td>{{ $item->supplier ?? '-' }}</td>
-                            <td>{{ $item->created_at->format('d/m/Y H:i') }}</td>
+                            {{-- <td>{{ $item->created_at->format('d/m/Y H:i') }}</td> --}}
                             <td>
                                 <a href="{{ route('bahan-baku.edit', $item->id) }}" class="btn btn-warning btn-sm">
                                     <i data-feather="edit-2"></i>

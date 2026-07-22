@@ -1,3 +1,4 @@
+{{-- resources/views/jenis-keripik/edit.blade.php --}}
 @extends('layouts.main')
 
 @section('content')
@@ -17,14 +18,22 @@
             
             <div class="row">
                 <div class="col-lg-6 mb-3">
-                    <label for="nama_jenis" class="form-label">Nama Jenis <span class="text-danger">*</span></label>
-                    <input type="text" 
-                           name="nama_jenis" 
-                           id="nama_jenis" 
-                           class="form-control @error('nama_jenis') is-invalid @enderror" 
-                           value="{{ old('nama_jenis', $jenisKeripik->nama_jenis) }}"
-                           placeholder="Masukkan nama jenis keripik" 
-                           required>
+                    <label for="nama_jenis" class="form-label">Nama Jenis Keripik <span class="text-danger">*</span></label>
+                    <select name="nama_jenis" 
+                            id="nama_jenis" 
+                            class="form-select @error('nama_jenis') is-invalid @enderror" 
+                            required>
+                        <option value="">-- Pilih Jenis Keripik --</option>
+                        <option value="Keripik Keladi Original" {{ old('nama_jenis', $jenisKeripik->nama_jenis) == 'Keripik Keladi Original' ? 'selected' : '' }}>
+                            Keripik Keladi Original
+                        </option>
+                        <option value="Keripik Keladi Pedas Manis" {{ old('nama_jenis', $jenisKeripik->nama_jenis) == 'Keripik Keladi Pedas Manis' ? 'selected' : '' }}>
+                            Keripik Keladi Pedas Manis
+                        </option>
+                        <option value="Keripik Keladi Asin Gurih" {{ old('nama_jenis', $jenisKeripik->nama_jenis) == 'Keripik Keladi Asin Gurih' ? 'selected' : '' }}>
+                            Keripik Keladi Asin Gurih
+                        </option>
+                    </select>
                     @error('nama_jenis')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -65,21 +74,56 @@
                     @if($jenisKeripik->gambar)
                         <div class="mb-2">
                             <img src="{{ asset('storage/' . $jenisKeripik->gambar) }}" 
-                                alt="{{ $jenisKeripik->nama_jenis }}" 
-                                style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px;">
+                                 alt="{{ $jenisKeripik->nama_jenis }}" 
+                                 class="img-thumbnail" 
+                                 style="max-height: 100px;">
                             <br>
                             <small class="text-muted">Gambar saat ini</small>
                         </div>
                     @endif
                     <input type="file" 
-                        name="gambar" 
-                        id="gambar" 
-                        class="form-control @error('gambar') is-invalid @enderror"
-                        accept="image/*">
-                    <small class="text-muted">Format: jpeg, png, jpg, gif | Max: 2MB | Kosongkan jika tidak ingin mengganti gambar</small>
+                           name="gambar" 
+                           id="gambar" 
+                           class="form-control @error('gambar') is-invalid @enderror"
+                           accept="image/*">
+                    <small class="text-muted">Format: jpeg, png, jpg, gif | Max: 2MB. Kosongkan jika tidak ingin mengubah gambar</small>
                     @error('gambar')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
+                </div>
+
+                <div class="col-lg-6 mb-3">
+                    <label for="berat" class="form-label">Berat <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input type="number" 
+                               name="berat" 
+                               id="berat" 
+                               class="form-control @error('berat') is-invalid @enderror" 
+                               value="{{ old('berat', $jenisKeripik->berat) }}"
+                               placeholder="Masukkan berat" 
+                               min="0"
+                               step="1"
+                               required>
+                        <span class="input-group-text">Gram</span>
+                    </div>
+                    @error('berat')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                {{-- Informasi Stok Saat Ini (Readonly) --}}
+                <div class="col-lg-6 mb-3">
+                    <label class="form-label">Stok Saat Ini</label>
+                    <div class="input-group">
+                        <input type="text" 
+                               class="form-control" 
+                               value="{{ number_format($jenisKeripik->stok->jumlah_stok ?? 0, 2) }} {{ $jenisKeripik->satuan }}"
+                               disabled>
+                        <span class="input-group-text bg-light">
+                            <i data-feather="info" class="text-info"></i>
+                        </span>
+                    </div>
+                    <small class="text-muted">Stok tidak dapat diubah melalui form ini. Gunakan fitur tambah stok.</small>
                 </div>
 
                 <div class="col-lg-12 mb-3">
@@ -98,9 +142,9 @@
                     <button type="submit" class="btn btn-primary">
                         <i data-feather="save"></i> Update Jenis Keripik
                     </button>
-                    <button type="reset" class="btn btn-warning">
-                        <i data-feather="refresh-ccw"></i> Reset
-                    </button>
+                    <a href="{{ route('jenis-keripik.index') }}" class="btn btn-secondary">
+                        <i data-feather="x-circle"></i> Batal
+                    </a>
                 </div>
             </div>
         </form>

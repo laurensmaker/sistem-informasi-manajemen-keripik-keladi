@@ -18,7 +18,8 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->decimal('jumlah_stok', 10, 2)->default(0);
             $table->decimal('jumlah_masuk', 10, 2)->default(0);
-            $table->decimal('jumlah_keluar', 10, 2)->default(0);
+            $table->decimal('jumlah_keluar', 10, 2)->default(0);            
+            $table->string('kode_bahan', 10)->unique();
             $table->dateTime('tanggal_update');
             $table->timestamps();
         });

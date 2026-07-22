@@ -110,7 +110,7 @@
                         <th>No. Transaksi</th>
                         <th>Tanggal</th>
                         <th>Pembeli</th>
-                        <th>Total</th>
+                        <th>Total Harga</th>
                         <th>Status</th>
                         <th>Kasir</th>
                         <th>Aksi</th>
@@ -123,7 +123,7 @@
                             <td>
                                 <strong>{{ $item->no_transaksi }}</strong>
                             </td>
-                            <td>{{ $item->tanggal_formatted }}</td>
+                            <td>{{ $item->tanggal }}</td>
                             <td>
                                 {{ $item->nama_pembeli }}
                                 @if($item->no_hp_pembeli)
@@ -131,11 +131,11 @@
                                 @endif
                             </td>
                             <td>
-                                <span class="fw-bold">{{ $item->total_harga_formatted }}</span>
+                                <span class="fw-bold">{{ $item->total_harga }}</span>
                             </td>
                             <td>
                                 <span class="{{ $item->status_badge }}">
-                                    {{ $item->status_label }}
+                                    {{ $item->status }}
                                 </span>
                             </td>
                             <td>{{ $item->user->nama ?? '-' }}</td>

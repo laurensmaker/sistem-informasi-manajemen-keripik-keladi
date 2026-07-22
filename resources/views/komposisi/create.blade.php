@@ -15,6 +15,7 @@
             @csrf
             
             <div class="row">
+                {{-- Jenis Keripik (Single Select) --}}
                 <div class="col-lg-6 mb-3">
                     <label for="jenis_keripik_id" class="form-label">Jenis Keripik <span class="text-danger">*</span></label>
                     <select name="jenis_keripik_id" 
@@ -33,46 +34,60 @@
                     @enderror
                 </div>
 
-                <div class="col-lg-6 mb-3">
-                    <label for="bahan_baku_id" class="form-label">Bahan Baku <span class="text-danger">*</span></label>
-                    <select name="bahan_baku_id" 
-                            id="bahan_baku_id" 
-                            class="form-select @error('bahan_baku_id') is-invalid @enderror" 
-                            required>
-                        <option value="">Pilih Bahan Baku</option>
-                        @foreach($bahanBaku as $item)
-                            <option value="{{ $item->id }}" 
-                                    data-satuan="{{ $item->satuan }}"
-                                    data-harga="{{ $item->harga_satuan }}"
-                                    {{ old('bahan_baku_id') == $item->id ? 'selected' : '' }}>
-                                {{ $item->nama_bahan }} ({{ $item->satuan }}) - Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('bahan_baku_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="col-lg-6 mb-3">
-                    <label for="jumlah_dibutuhkan" class="form-label">Jumlah Dibutuhkan <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <input type="number" 
-                               name="jumlah_dibutuhkan" 
-                               id="jumlah_dibutuhkan" 
-                               class="form-control @error('jumlah_dibutuhkan') is-invalid @enderror" 
-                               value="{{ old('jumlah_dibutuhkan') }}"
-                               placeholder="0" 
-                               min="0.01"
-                               step="0.01"
-                               required>
-                        <span class="input-group-text" id="satuan_label">-</span>
+                {{-- Bahan Baku (Checkbox Multiple) --}}
+                <div class="col-lg-12 mb-3">
+                    <label class="form-label">Bahan Baku <span class="text-danger">*</span></label>
+                    <div class="card border @error('bahan_baku_id') border-danger @enderror">
+                        <div class="card-body">
+                            <div class="row">
+                                @foreach($bahanBaku as $item)
+                                <div class="col-lg-4 col-md-6 col-sm-12 mb-2">
+                                    <div class="form-check border rounded p-3 @if(in_array($item->id, old('bahan_baku_id', []))) border-primary bg-primary-light @endif">
+                                        <input class="form-check-input bahan-checkbox" 
+                                               type="checkbox" 
+                                               name="bahan_baku_id[]" 
+                                               id="bahan_{{ $item->id }}" 
+                                               value="{{ $item->id }}"
+                                               data-satuan="{{ $item->satuan }}"
+                                               data-harga="{{ $item->harga_satuan }}"
+                                               data-nama="{{ $item->nama_bahan }}"
+                                               {{ in_array($item->id, old('bahan_baku_id', [])) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="bahan_{{ $item->id }}">
+                                            <strong>{{ $item->nama_bahan }}</strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                Satuan: {{ $item->satuan }} | 
+                                                Harga: Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}
+                                            </small>
+                                            <br>
+                                            {{-- <small class="text-muted">
+                                                Stok: {{ number_format($item->stok->jumlah_stok ?? 0, 2) }}
+                                            </small> --}}
+                                        </label>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
                     </div>
-                    @error('jumlah_dibutuhkan')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                    @error('bahan_baku_id')
+                        <div class="text-danger">{{ $message }}</div>
                     @enderror
+                    @error('bahan_baku_id.*')
+                        <div class="text-danger">{{ $message }}</div>
+                    @enderror
+                    <small class="text-muted">Pilih satu atau lebih bahan baku yang digunakan</small>
                 </div>
 
+                {{-- Jumlah Dibutuhkan per Bahan --}}
+                <div class="col-lg-12 mb-3" id="jumlah_container" style="display: none;">
+                    <label class="form-label">Jumlah Dibutuhkan per Bahan <span class="text-danger">*</span></label>
+                    <div class="row" id="jumlah_fields">
+                        <!-- Akan diisi oleh JavaScript -->
+                    </div>
+                </div>
+
+                {{-- Total Biaya --}}
                 <div class="col-lg-6 mb-3">
                     <label class="form-label">Total Biaya</label>
                     <div class="input-group">
@@ -91,7 +106,8 @@
                         <i data-feather="info"></i>
                         <strong>Catatan:</strong>
                         <ul class="mb-0">
-                            <li>Satu komposisi hanya boleh 1 jenis keripik dan 1 bahan baku</li>
+                            <li>Satu komposisi hanya boleh 1 jenis keripik</li>
+                            <li>Bahan baku bisa lebih dari 1 (pilih dengan checkbox)</li>
                             <li>Kombinasi jenis keripik dan bahan baku tidak boleh duplikat</li>
                             <li>Total biaya akan dihitung otomatis</li>
                         </ul>
@@ -115,33 +131,69 @@
 
 @push('scripts')
 <script>
-    // Update satuan dan hitung total biaya saat bahan baku dipilih
-    document.getElementById('bahan_baku_id').addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const satuan = selectedOption.dataset.satuan || '-';
-        const harga = parseFloat(selectedOption.dataset.harga) || 0;
-        
-        document.getElementById('satuan_label').textContent = satuan;
-        hitungTotalBiaya(harga);
-    });
+    document.addEventListener('DOMContentLoaded', function() {
+        // Event listener untuk checkbox
+        var checkboxes = document.querySelectorAll('.bahan-checkbox');
+        checkboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                var checked = document.querySelectorAll('.bahan-checkbox:checked');
+                var container = document.getElementById('jumlah_container');
+                var fieldsContainer = document.getElementById('jumlah_fields');
+                
+                if (checked.length === 0) {
+                    container.style.display = 'none';
+                    document.getElementById('total_biaya').value = '0';
+                    return;
+                }
 
-    // Hitung total biaya saat jumlah diubah
-    document.getElementById('jumlah_dibutuhkan').addEventListener('input', function() {
-        const selectedOption = document.getElementById('bahan_baku_id').options[document.getElementById('bahan_baku_id').selectedIndex];
-        const harga = parseFloat(selectedOption.dataset.harga) || 0;
-        hitungTotalBiaya(harga);
-    });
+                container.style.display = 'block';
+                fieldsContainer.innerHTML = '';
 
-    function hitungTotalBiaya(harga) {
-        const jumlah = parseFloat(document.getElementById('jumlah_dibutuhkan').value) || 0;
-        const total = jumlah * harga;
-        document.getElementById('total_biaya').value = total.toLocaleString('id-ID', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
+                checked.forEach(function(cb) {
+                    var id = cb.value;
+                    var nama = cb.getAttribute('data-nama');
+                    var satuan = cb.getAttribute('data-satuan');
+                    var harga = cb.getAttribute('data-harga');
+                    
+                    var div = document.createElement('div');
+                    div.className = 'col-lg-4 col-md-6 mb-3';
+                    div.innerHTML = '<div class="card"><div class="card-body">' +
+                        '<label class="form-label fw-bold">' + nama + '</label>' +
+                        '<div class="input-group">' +
+                        '<input type="number" name="jumlah[' + id + ']" class="form-control jumlah-input" placeholder="Jumlah" min="0.01" step="0.01" data-id="' + id + '" data-harga="' + harga + '" required>' +
+                        '<span class="input-group-text">' + satuan + '</span>' +
+                        '</div>' +
+                        '<small class="text-muted">Subtotal: Rp <span id="subtotal_' + id + '">0</span></small>' +
+                        '</div></div>';
+                    fieldsContainer.appendChild(div);
+                });
+
+                // Event listener untuk input jumlah
+                document.querySelectorAll('.jumlah-input').forEach(function(input) {
+                    input.addEventListener('input', function() {
+                        var id = this.getAttribute('data-id');
+                        var harga = parseFloat(this.getAttribute('data-harga')) || 0;
+                        var jumlah = parseFloat(this.value) || 0;
+                        var subtotal = jumlah * harga;
+                        document.getElementById('subtotal_' + id).textContent = subtotal.toLocaleString('id-ID');
+                        
+                        // Hitung total
+                        var total = 0;
+                        document.querySelectorAll('.jumlah-input').forEach(function(inp) {
+                            var h = parseFloat(inp.getAttribute('data-harga')) || 0;
+                            var j = parseFloat(inp.value) || 0;
+                            total += j * h;
+                        });
+                        document.getElementById('total_biaya').value = total.toLocaleString('id-ID');
+                    });
+                });
+            });
         });
-    }
 
-    // Trigger perubahan awal
-    document.getElementById('bahan_baku_id').dispatchEvent(new Event('change'));
+        // Trigger untuk checkbox yang sudah checked
+        document.querySelectorAll('.bahan-checkbox:checked').forEach(function(cb) {
+            cb.dispatchEvent(new Event('change'));
+        });
+    });
 </script>
 @endpush

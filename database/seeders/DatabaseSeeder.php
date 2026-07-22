@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
 
         // Data Penjual (2 data)
         User::create([
-            'nama' => 'Ahmad Penjual',
+            'nama' => 'Lazuardi',
             'username' => 'penjual1',
             'password' => bcrypt('penjual123'),
             'role' => 'penjual',

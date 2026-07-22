@@ -15,15 +15,23 @@
             @csrf
             
             <div class="row">
-                <div class="col-lg-6 mb-3">
-                    <label for="nama_jenis" class="form-label">Nama Jenis <span class="text-danger">*</span></label>
-                    <input type="text" 
-                           name="nama_jenis" 
-                           id="nama_jenis" 
-                           class="form-control @error('nama_jenis') is-invalid @enderror" 
-                           value="{{ old('nama_jenis') }}"
-                           placeholder="Masukkan nama jenis keripik" 
-                           required>
+               <div class="col-lg-6 mb-3">
+                    <label for="nama_jenis" class="form-label">Nama Jenis Keripik <span class="text-danger">*</span></label>
+                    <select name="nama_jenis" 
+                            id="nama_jenis" 
+                            class="form-select @error('nama_jenis') is-invalid @enderror" 
+                            required>
+                        <option value="">-- Pilih Jenis Keripik --</option>
+                        <option value="Keripik Keladi Original" {{ old('nama_jenis') == 'Keripik Keladi Original' ? 'selected' : '' }}>
+                            Keripik Keladi Original
+                        </option>
+                        <option value="Keripik Keladi Pedas Manis" {{ old('nama_jenis') == 'Keripik Keladi Pedas Manis' ? 'selected' : '' }}>
+                            Keripik Keladi Pedas Manis
+                        </option>
+                        <option value="Keripik Keladi Asin Gurih" {{ old('nama_jenis') == 'Keripik Keladi Asin Gurih' ? 'selected' : '' }}>
+                            Keripik Keladi Asin Gurih
+                        </option>
+                    </select>
                     @error('nama_jenis')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -72,6 +80,42 @@
                     @enderror
                 </div>
 
+                <div class="col-lg-6 mb-3">
+                    <label for="berat" class="form-label">Berat <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input type="number" 
+                               name="berat" 
+                               id="berat" 
+                               class="form-control @error('berat') is-invalid @enderror" 
+                               value="{{ old('berat') }}"
+                               placeholder="Masukkan berat" 
+                               min="0"
+                               step="1"
+                               required>
+                        <span class="input-group-text">Gram</span>
+                    </div>
+                    @error('berat')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                  <div class="col-lg-6 mb-3">
+                    <label for="stok_awal" class="form-label">Stok Awal</label>
+                    <div class="input-group">
+                        <input type="number" 
+                               name="stok_awal" 
+                               id="stok_awal" 
+                               class="form-control @error('stok_awal') is-invalid @enderror" 
+                               value="{{ old('stok_awal') }}"
+                               placeholder="Masukkan stok awal" >
+                        <span class="input-group-text">Unit</span>
+                    </div>
+                    <small class="text-muted">Kosongkan atau isi 0 jika tidak ada stok awal</small>
+                    @error('stok_awal')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
                 <div class="col-lg-12 mb-3">
                     <label for="deskripsi" class="form-label">Deskripsi</label>
                     <textarea name="deskripsi" 
@@ -83,6 +127,8 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
+
+              
 
                 <div class="col-lg-12 mt-3">
                     <button type="submit" class="btn btn-primary">

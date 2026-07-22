@@ -2,44 +2,6 @@
 
 @section('content')
 
-<div class="d-sm-flex justify-content-between align-items-center mb-4">
-    <h3 class="fs-18">Laporan Laba Rugi</h3>
-    <div>
-        <button onclick="window.print()" class="btn btn-success btn-sm">
-            <i data-feather="printer"></i> Print
-        </button>
-        <a href="{{ route('laporan.dashboard-keuangan') }}" class="btn btn-info btn-sm">
-            <i data-feather="bar-chart-2"></i> Dashboard
-        </a>
-        <a href="{{ route('penjualan.index') }}" class="btn btn-secondary btn-sm">
-            <i data-feather="arrow-left"></i> Kembali
-        </a>
-    </div>
-</div>
-
-<!-- Filter -->
-{{-- <div class="card bg-white border-0 rounded-10 mb-4">
-    <div class="card-body p-4">
-        <form action="{{ route('laporan.laba-rugi') }}" method="GET" class="row">
-            <div class="col-md-4">
-                <label class="form-label">Tanggal Awal</label>
-                <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">Tanggal Akhir</label>
-                <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
-            </div>
-            <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-100 me-2">
-                    <i data-feather="filter"></i> Filter
-                </button>
-                <a href="{{ route('laporan.laba-rugi') }}" class="btn btn-secondary w-100">
-                    <i data-feather="refresh-ccw"></i>
-                </a>
-            </div>
-        </form>
-    </div>
-</div> --}}
 
 <!-- Ringkasan -->
 <div class="row">

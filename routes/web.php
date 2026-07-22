@@ -58,11 +58,26 @@ Route::middleware(['auth'])->group(function () {
     Route::get('penjualan/get-produk/{id}', [PenjualanController::class, 'getProduk'])->name('penjualan.get-produk');
     Route::patch('penjualan/{penjualan}/status', [PenjualanController::class, 'updateStatus'])->name('penjualan.update-status');
     
-    Route::prefix('laporan')->name('laporan.')->group(function() {
+    Route::prefix('laporan')->group(function() {
         Route::get('laba-rugi', [LaporanController::class, 'labaRugi'])->name('laba-rugi');
-        Route::get('keuntungan-produk', [LaporanController::class, 'keuntunganProduk'])->name('keuntungan-produk');
-        Route::get('keuntungan-bahan', [LaporanController::class, 'keuntunganBahan'])->name('keuntungan-bahan');
+        // Route::get('keuntungan-produk', [LaporanController::class, 'keuntunganProduk'])->name('keuntungan-produk');
+        // Route::get('keuntungan-bahan', [LaporanController::class, 'keuntunganBahan'])->name('keuntungan-bahan');
         Route::get('dashboard-keuangan', [LaporanController::class, 'dashboardKeuangan'])->name('dashboard-keuangan');
-        Route::get('print-laba-rugi', [LaporanController::class, 'printLabaRugi'])->name('print-laba-rugi');
+        // Route::get('print-laba-rugi', [LaporanController::class, 'printLabaRugi'])->name('print-laba-rugi');
+
+         // Halaman Index Laporan
+        Route::get('/', [LaporanController::class, 'index'])->name('laporan.index');
+
+        // Laporan Penjualan
+        Route::get('/penjualan', [LaporanController::class, 'laporanPenjualan'])->name('laporan.penjualan');
+        Route::post('/penjualan/download', [LaporanController::class, 'downloadPenjualanPDF'])->name('laporan.penjualan.download');
+
+        // Laporan Jenis Keripik
+        Route::get('/jenis-keripik', [LaporanController::class, 'laporanJenisKeripik'])->name('laporan.jenis-keripik');
+        Route::get('/jenis-keripik/download', [LaporanController::class, 'downloadJenisKeripikPDF'])->name('laporan.jenis-keripik.download');
+
+        // Laporan Bahan Baku
+        Route::get('/bahan-baku', [LaporanController::class, 'laporanBahanBaku'])->name('laporan.bahan-baku');
+        Route::get('/bahan-baku/download', [LaporanController::class, 'downloadBahanBakuPDF'])->name('laporan.bahan-baku.download');
     });
 });

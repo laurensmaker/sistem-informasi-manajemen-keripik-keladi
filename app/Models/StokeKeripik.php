@@ -16,6 +16,7 @@ class StokeKeripik extends Model
         'jumlah_stok',
         'jumlah_masuk',
         'jumlah_keluar',
+        'kode_keripik',
         'tanggal_update',
         // 'user_id',
     ];
@@ -28,9 +29,11 @@ class StokeKeripik extends Model
     ];
 
     // Relasi ke JenisKeripik
+   
+
     public function jenisKeripik()
     {
-        return $this->belongsTo(JenisKeripik::class, 'jenis_keripik_id');
+        return $this->belongsTo(JenisKeripik::class);
     }
 
     // Relasi ke User
@@ -58,5 +61,24 @@ class StokeKeripik extends Model
     public function scopeByDateRange($query, $startDate, $endDate)
     {
         return $query->whereBetween('tanggal_update', [$startDate, $endDate]);
+    }
+
+     public function kurangiStok($jumlah, $keterangan = null)
+    {
+        // Validasi stok (integer)
+        if ($this->jumlah_stok < $jumlah) {
+            throw new \Exception("Stok tidak mencukupi! Stok tersedia: {$this->jumlah_stok}");
+        }
+
+        // Catat stok sebelum
+        $stokSebelum = $this->jumlah_stok;
+        
+        // Kurangi stok (integer)
+        $this->jumlah_stok -= $jumlah;
+        $this->jumlah_keluar += $jumlah;
+        $this->tanggal_update = now();
+        $this->save();
+
+        return $this;
     }
 }
