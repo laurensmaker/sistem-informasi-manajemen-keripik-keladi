@@ -22,21 +22,21 @@
                 <thead class="table-light">
                     <tr>
                         <th>No</th>
-                        <th>Kode</th>
+                        {{-- <th>Kode</th> --}}
                         <th>Nama Keripik</th>
                         <th>Satuan</th>
                         <th>Harga Jual</th>
                         <th>Stok Tersedia</th>
                         <th>Total Masuk</th>
                         <th>Total Keluar</th>
-                        <th>Jumlah Bahan</th>
+                        {{-- <th>Jumlah Bahan</th> --}}
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($jenisKeripik as $key => $item)
                     <tr>
                         <td>{{ $key + 1 }}</td>
-                        <td>{{ $item->stok->kode_keripik ?? '-' }}</td>
+                        {{-- <td>{{ $item->stok->kode_keripik ?? '-' }}</td> --}}
                         <td><strong>{{ $item->nama_jenis }}</strong></td>
                         <td>{{ $item->satuan }}</td>
                         <td>Rp {{ number_format($item->harga_jual, 0, ',', '.') }}</td>
@@ -47,7 +47,7 @@
                         </td>
                         <td>{{ number_format($item->stok->jumlah_masuk ?? 0) }}</td>
                         <td>{{ number_format($item->stok->jumlah_keluar ?? 0) }}</td>
-                        <td>{{ $item->komposisi->count() }}</td>
+                        {{-- <td>{{ $item->komposisi->count() }}</td> --}}
                     </tr>
                     @empty
                     <tr>
@@ -55,13 +55,13 @@
                     </tr>
                     @endforelse
                 </tbody>
-                <tfoot class="table-light">
+                {{-- <tfoot class="table-light">
                     <tr>
                         <td colspan="5" class="text-end fw-bold">Total</td>
                         <td><strong>{{ number_format($totalStok) }}</strong></td>
                         <td colspan="3"></td>
                     </tr>
-                </tfoot>
+                </tfoot> --}}
             </table>
         </div>
     </div>

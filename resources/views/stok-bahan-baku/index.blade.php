@@ -8,9 +8,9 @@
         {{-- <a href="{{ route('stok-bahan-baku.dashboard') }}" class="btn btn-info btn-sm">
             <i data-feather="bar-chart-2"></i> Dashboard
         </a> --}}
-        <a href="{{ route('stok-bahan-baku.laporan') }}" class="btn btn-success btn-sm">
+        {{-- <a href="{{ route('stok-bahan-baku.laporan') }}" class="btn btn-success btn-sm">
             <i data-feather="file-text"></i> Laporan
-        </a>
+        </a> --}}
         {{-- <a href="{{ route('stok-bahan-baku.create') }}" class="btn btn-primary btn-sm">
             <i data-feather="plus"></i> Tambah Stok
         </a> --}}

@@ -71,6 +71,7 @@ Route::middleware(['auth'])->group(function () {
         // Laporan Penjualan
         Route::get('/penjualan', [LaporanController::class, 'laporanPenjualan'])->name('laporan.penjualan');
         Route::post('/penjualan/download', [LaporanController::class, 'downloadPenjualanPDF'])->name('laporan.penjualan.download');
+        Route::get('/penjualan/filter', [LaporanController::class, 'laporanPenjualan'])->name('laporan.penjualan.filter');
 
         // Laporan Jenis Keripik
         Route::get('/jenis-keripik', [LaporanController::class, 'laporanJenisKeripik'])->name('laporan.jenis-keripik');

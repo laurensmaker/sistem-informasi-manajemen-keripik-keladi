@@ -18,47 +18,79 @@ class LaporanController extends Controller
     }
 
     // ============= LAPORAN PENJUALAN =============
-    public function laporanPenjualan()
+     public function laporanPenjualan(Request $request)
     {
-        return view('laporan.penjualan');
-    }
+        // Default filter: bulan ini
+        $dariTanggal = $request->dari_tanggal;
+        $sampaiTanggal = $request->sampai_tanggal;
+        $status = $request->status;
 
-    public function downloadPenjualanPDF(Request $request)
-    {
-        $request->validate([
-            'dari_tanggal' => 'nullable|date',
-            'sampai_tanggal' => 'nullable|date|after_or_equal:dari_tanggal',
-        ]);
-
-        // Query dengan relasi yang benar
         $query = Penjualan::with(['details.jenisKeripik', 'user']);
 
         // Filter tanggal
+        if ($dariTanggal && $sampaiTanggal) {
+            $query->whereBetween('tanggal', [
+                $dariTanggal . ' 00:00:00',
+                $sampaiTanggal . ' 23:59:59'
+            ]);
+        }
+
+        // Filter status
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        $penjualan = $query->orderBy('tanggal', 'desc')->paginate(10);
+
+        $totalPenjualan = $query->get()->sum('total_harga');
+        $totalItems = $query->get()->sum(function($item) {
+            return $item->details->sum('jumlah');
+        });
+
+        return view('laporan.penjualan', compact('penjualan', 'totalPenjualan', 'totalItems'));
+    }
+
+   public function downloadPenjualanPDF(Request $request)
+    {
+        // Tidak ada default filter
+        $query = Penjualan::with(['details.jenisKeripik', 'user']);
+
+        // Filter tanggal (hanya jika ada parameter)
         if ($request->filled('dari_tanggal') && $request->filled('sampai_tanggal')) {
             $query->whereBetween('tanggal', [
-                $request->dari_tanggal . ' 00:00:00', 
+                $request->dari_tanggal . ' 00:00:00',
                 $request->sampai_tanggal . ' 23:59:59'
             ]);
-        } else {
-            // Default: hari ini
-            $query->whereDate('tanggal', today());
+        }
+
+        // Filter status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
         }
 
         $penjualan = $query->orderBy('tanggal', 'desc')->get();
 
-        // Debug: Cek apakah ada data
-        // dd($penjualan); // Uncomment untuk debug
+        // Jika tidak ada data, redirect dengan pesan
+        if ($penjualan->isEmpty()) {
+            return redirect()->back()->with('warning', 'Tidak ada data penjualan pada periode yang dipilih!');
+        }
 
-        // Jika tidak ada data, tetap tampilkan dengan pesan
         $totalPenjualan = $penjualan->sum('total_harga');
         $totalItems = $penjualan->sum(function($item) {
             return $item->details->sum('jumlah');
         });
 
+        // Tentukan subtitle berdasarkan filter
+        if ($request->filled('dari_tanggal') && $request->filled('sampai_tanggal')) {
+            $subtitle = 'Periode: ' . date('d/m/Y', strtotime($request->dari_tanggal)) . 
+                        ' - ' . date('d/m/Y', strtotime($request->sampai_tanggal));
+        } else {
+            $subtitle = 'Semua Data Penjualan';
+        }
+
         $data = [
             'title' => 'LAPORAN PENJUALAN',
-            'subtitle' => 'Periode: ' . ($request->filled('dari_tanggal') ? date('d/m/Y', strtotime($request->dari_tanggal)) : date('d/m/Y')) . 
-                         ' - ' . ($request->filled('sampai_tanggal') ? date('d/m/Y', strtotime($request->sampai_tanggal)) : date('d/m/Y')),
+            'subtitle' => $subtitle,
             'penjualan' => $penjualan,
             'totalPenjualan' => $totalPenjualan,
             'totalItems' => $totalItems,
@@ -66,6 +98,7 @@ class LaporanController extends Controller
             'tanggal_cetak' => date('d/m/Y H:i:s'),
             'dari_tanggal' => $request->dari_tanggal,
             'sampai_tanggal' => $request->sampai_tanggal,
+            'status' => $request->status,
         ];
 
         $pdf = Pdf::loadView('laporan.pdf.penjualan', $data);
@@ -82,7 +115,8 @@ class LaporanController extends Controller
     // ============= LAPORAN JENIS KERIPIK DENGAN STOK =============
     public function laporanJenisKeripik()
     {
-        return view('laporan.jenis-keripik');
+        $jenisKeripik = JenisKeripik::with(['stok', 'komposisi.bahanBaku'])->get();
+        return view('laporan.jenis-keripik', compact('jenisKeripik'));
     }
 
     public function downloadJenisKeripikPDF()
@@ -125,7 +159,8 @@ class LaporanController extends Controller
     // ============= LAPORAN BAHAN BAKU DENGAN STOK =============
     public function laporanBahanBaku()
     {
-        return view('laporan.bahan-baku');
+        $bahanBaku = BahanBaku::with('stok')->get();
+        return view('laporan.bahan-baku', compact('bahanBaku'));
     }
 
     public function downloadBahanBakuPDF()
@@ -134,6 +169,14 @@ class LaporanController extends Controller
 
         $totalStok = $bahanBaku->sum(function($item) {
             return $item->stok->jumlah_stok ?? 0;
+        });
+
+        $totalMasuk = $bahanBaku->sum(function($item) {
+            return $item->stok->jumlah_masuk ?? 0;
+        });
+
+        $totalKeluar = $bahanBaku->sum(function($item) {
+            return $item->stok->jumlah_keluar ?? 0;
         });
 
         $totalBahan = $bahanBaku->count();
@@ -146,17 +189,21 @@ class LaporanController extends Controller
             'subtitle' => 'Data Seluruh Bahan Baku dan Stok Tersedia',
             'bahanBaku' => $bahanBaku,
             'totalStok' => $totalStok,
+            'totalMasuk' => $totalMasuk,
+            'totalKeluar' => $totalKeluar,
             'totalBahan' => $totalBahan,
             'totalNilaiStok' => $totalNilaiStok,
             'tanggal_cetak' => date('d/m/Y H:i:s'),
         ];
 
         $pdf = Pdf::loadView('laporan.pdf.bahan-baku', $data);
-        $pdf->setPaper('A4', 'landscape');
+        $pdf->setPaper('A4', 'landscape'); // Landscape agar lebih luas
         $pdf->setOptions([
             'defaultFont' => 'sans-serif',
             'isHtml5ParserEnabled' => true,
             'isRemoteEnabled' => true,
+            'dpi' => 150,
+            'defaultPaperSize' => 'a4',
         ]);
         
         return $pdf->download('laporan-bahan-baku-' . date('Y-m-d') . '.pdf');

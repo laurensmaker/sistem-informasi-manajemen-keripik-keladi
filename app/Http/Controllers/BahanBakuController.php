@@ -81,6 +81,9 @@ class BahanBakuController extends Controller
             $kode = 'PLK';
         }else if($request->nama_bahan == 'Gas'){
             $kode = 'GAS';
+        
+        }else if($request->nama_bahan == 'Bumbu'){
+            $kode = 'BMB';
         }
 
             $stokAwal = $request->stok_awal;

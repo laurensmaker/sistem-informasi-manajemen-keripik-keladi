@@ -27,6 +27,7 @@
                         <option value="Minyak Goreng" {{ old('nama_bahan', $bahanBaku->nama_bahan) == 'Minyak Goreng' ? 'selected' : '' }}>Minyak Goreng</option>
                         <option value="Gula Halus" {{ old('nama_bahan', $bahanBaku->nama_bahan) == 'Gula Halus' ? 'selected' : '' }}>Gula Halus</option>
                         <option value="Garam" {{ old('nama_bahan', $bahanBaku->nama_bahan) == 'Garam' ? 'selected' : '' }}>Garam</option>
+                        <option value="Bumbu" {{ old('nama_bahan', $bahanBaku->nama_bahan) == 'Bumbu' ? 'selected' : '' }}>Bumbu</option>
                         <option value="Minyak Wijen" {{ old('nama_bahan', $bahanBaku->nama_bahan) == 'Minyak Wijen' ? 'selected' : '' }}>Minyak Wijen</option>
                         <option value="Minyak Tanah" {{ old('nama_bahan', $bahanBaku->nama_bahan) == 'Minyak Tanah' ? 'selected' : '' }}>Minyak Tanah</option>
                         <option value="Royco" {{ old('nama_bahan', $bahanBaku->nama_bahan) == 'Royco' ? 'selected' : '' }}>Royco</option>
@@ -84,7 +85,6 @@
                                min="0"
                                step="1"
                                required>
-                        <span class="input-group-text">Gram</span>
                     </div>
                     @error('berat')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -110,7 +110,7 @@
                     <div class="input-group">
                         <input type="text" 
                                class="form-control" 
-                               value="{{ number_format($bahanBaku->stok->jumlah_stok ?? 0, 2) }} {{ $bahanBaku->satuan }}"
+                               value="{{ number_format($bahanBaku->stok->jumlah_stok ?? 0, 0) }} {{ $bahanBaku->satuan }}"
                                disabled>
                         <span class="input-group-text bg-light">
                             <i data-feather="info" class="text-info"></i>

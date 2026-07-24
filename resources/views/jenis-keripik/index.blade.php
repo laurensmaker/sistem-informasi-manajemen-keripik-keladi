@@ -47,8 +47,7 @@
                                 @if($item->gambar)
                                     <img src="{{ asset('storage/' . $item->gambar) }}" 
                                         alt="{{ $item->nama_jenis }}" 
-                                        style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"
-                                        onerror="this.onerror=null; this.src='{{ asset('images/default-product.png') }}';">
+                                        style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
                                 @else
                                     <span class="badge bg-secondary">No Image</span>
                                 @endif

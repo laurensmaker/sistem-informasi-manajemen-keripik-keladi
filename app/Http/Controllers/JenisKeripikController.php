@@ -31,66 +31,45 @@ class JenisKeripikController extends Controller
      */
      public function store(Request $request)
     {
-        $request->validate([
+        $jenisK = $request->validate([
             'nama_jenis' => 'required|string|max:50',
             'deskripsi' => 'nullable|string',
             'harga_jual' => 'required|numeric|min:0',
             'satuan' => 'required|string|max:20',
             'berat' => 'required|integer|min:0',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'stok_awal' => 'nullable',
+            // 'stok_awal' => 'nullable',
         ]);
 
-        $data = $request->all();
-
-        if ($request->hasFile('gambar')) {
-           $fotoSurveiPath = $request->file('gambar')->store('jenis_keripik/gambar', 'public');
+         \DB::beginTransaction();
+        try {
+            // 1. Siapkan data
+            $data = $request->except('gambar');
             
-            // Simpan path ke database (tanpa 'public/')
-            $data['gambar'] = $fotoSurveiPath;
-        }
+            // 2. Handle upload gambar
+            if ($request->hasFile('gambar')) {
+                $file = $request->file('gambar');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $filePath = $file->storeAs('jenis_keripik', $fileName, 'public');
+                $data['gambar'] = $filePath;
+            }
 
-       
+            // 3. Simpan jenis keripik
+            $jenisKeripik = JenisKeripik::create($data);
 
-        $stokAwal = $request->stok_awal;
-
-        $jenisKeripik = JenisKeripik::create($request->except('stok_awal'));
-        $kodeKeripik = '';
-        if($request->nama_jenis == 'Keripik Keladi Original'){
-            $kodeKeripik = 'KKO';
-        } elseif($request->nama_jenis == 'Keripik Keladi Pedas Manis'){
-            $kodeKeripik = 'KKPM';
-        } elseif($request->nama_jenis == 'Keripik Keladi Asin Gurih'){
-            $kodeKeripik = 'KKAG';
-        } 
-        $stokKeripik = StokeKeripik::all();
-
-        if(!$stokKeripik->contains('kode_keripik', $kodeKeripik)){
-            StokeKeripik::create([
-                'jenis_keripik_id' => $jenisKeripik->id,
-                'jumlah_stok' => $stokAwal,
-                'jumlah_masuk' => $stokAwal,
-                'jumlah_keluar' => 0,
-                'kode_keripik' => $kodeKeripik,
-                'tanggal_update' => now(),
-            ]);
+            \DB::commit();
 
             return redirect()->route('jenis-keripik.index')
-            ->with('success', 'Jenis keripik berhasil ditambahkan!');
-        }else if ($stokKeripik->contains('kode_keripik', $kodeKeripik)) {
-            // Ambil item dari collection yang memiliki kode_keripik tersebut
-            $stokItem = $stokKeripik->firstWhere('kode_keripik', $kodeKeripik);
-            
-            // Sekarang update data
-            $stokSebelum = $stokItem->jumlah_stok;
-            $stokItem->jumlah_stok += $stokAwal;
-            $stokItem->jumlah_masuk = $stokAwal;
-            $stokItem->tanggal_update = now();
-            $stokItem->save();
+                ->with('success', 'Jenis keripik berhasil ditambahkan!');
 
-            return redirect()->route('jenis-keripik.index')
-            ->with('success', 'Jenis keripik berhasil ditambahkan dan stok diperbarui!');
+        } catch (\Exception $e) {
+            \DB::rollback();
+            return redirect()->back()
+                ->with('error', 'Gagal menambahkan jenis keripik: ' . $e->getMessage())
+                ->withInput();
         }
+        // return redirect()->route('jenis-keripik.index')
+        //             ->with('success', 'Jenis keripik berhasil ditambahkan!');
     }
 
     /**

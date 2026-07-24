@@ -22,7 +22,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>No</th>
-                        <th>Kode</th>
+                        {{-- <th>Kode</th> --}}
                         <th>Nama Bahan</th>
                         <th>Satuan</th>
                         <th>Supplier</th>
@@ -37,18 +37,18 @@
                     @forelse($bahanBaku as $key => $item)
                     <tr>
                         <td>{{ $key + 1 }}</td>
-                        <td>{{ $item->stok->kode_bahan ?? '-' }}</td>
+                        {{-- <td>{{ $item->stok->kode_bahan ?? '-' }}</td> --}}
                         <td><strong>{{ $item->nama_bahan }}</strong></td>
                         <td>{{ $item->satuan }}</td>
                         <td>{{ $item->supplier ?? '-' }}</td>
                         <td>Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
                         <td>
                             <span class="badge {{ ($item->stok->jumlah_stok ?? 0) > 0 ? 'bg-success' : 'bg-danger' }}">
-                                {{ number_format($item->stok->jumlah_stok ?? 0, 2) }}
+                                {{ number_format($item->stok->jumlah_stok ?? 0, 0) }}
                             </span>
                         </td>
-                        <td>{{ number_format($item->stok->jumlah_masuk ?? 0, 2) }}</td>
-                        <td>{{ number_format($item->stok->jumlah_keluar ?? 0, 2) }}</td>
+                        <td>{{ number_format($item->stok->jumlah_masuk ?? 0, 0) }}</td>
+                        <td>{{ number_format($item->stok->jumlah_keluar ?? 0, 0) }}</td>
                         <td>
                             Rp {{ number_format(($item->stok->jumlah_stok ?? 0) * $item->harga_satuan, 0, ',', '.') }}
                         </td>
@@ -59,14 +59,14 @@
                     </tr>
                     @endforelse
                 </tbody>
-                <tfoot class="table-light">
+                {{-- <tfoot class="table-light">
                     <tr>
                         <td colspan="6" class="text-end fw-bold">Total</td>
                         <td><strong>{{ number_format($totalStok, 2) }}</strong></td>
                         <td colspan="2"></td>
                         <td><strong>Rp {{ number_format($totalNilaiStok, 0, ',', '.') }}</strong></td>
                     </tr>
-                </tfoot>
+                </tfoot> --}}
             </table>
         </div>
     </div>

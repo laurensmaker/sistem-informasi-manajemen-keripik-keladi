@@ -81,4 +81,12 @@ class StokeKeripik extends Model
 
         return $this;
     }
+
+    public static function generateKode($jenisKeripikId, $berat)
+    {
+        $prefix = 'KRK';
+        $idPad = str_pad($jenisKeripikId, 3, '0', STR_PAD_LEFT);
+        $beratPad = str_pad($berat, 3, '0', STR_PAD_LEFT);
+        return $prefix . $idPad . $beratPad;
+    }
 }

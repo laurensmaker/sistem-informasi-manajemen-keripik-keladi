@@ -79,7 +79,7 @@
                             </td>
                             <td>
                                 <span class="{{ $item->status_badge }}">
-                                    {{ $item->status_label }}
+                                    {{ $item->status }}
                                 </span>
                             </td>
                         </tr>

@@ -6,6 +6,7 @@ use App\Models\BahanBaku;
 use App\Models\JenisKeripik;
 use App\Models\Komposisi;
 use App\Models\StokBahanBaku;
+use App\Models\StokeKeripik;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -14,25 +15,21 @@ class KomposisiController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        $query = Komposisi::with(['jenisKeripik', 'bahanBaku']);
+        // Ambil hanya jenis keripik yang memiliki komposisi (bahan baku)
+        $jenisKeripik = JenisKeripik::with(['komposisi.bahanBaku', 'stok'])
+            ->whereHas('komposisi', function($query) {
+                $query->where('jumlah_dibutuhkan', '>', 0);
+            })
+            ->get();
+            
+        // Filter yang memiliki stok atau komposisi
+        $jenisKeripik = $jenisKeripik->filter(function($item) {
+            return $item->komposisi->count() > 0;
+        });
 
-        // Filter berdasarkan jenis keripik
-        if ($request->filled('jenis_keripik_id')) {
-            $query->where('jenis_keripik_id', $request->jenis_keripik_id);
-        }
-
-        // Filter berdasarkan bahan baku
-        if ($request->filled('bahan_baku_id')) {
-            $query->where('bahan_baku_id', $request->bahan_baku_id);
-        }
-
-        $komposisi = $query->latest()->paginate(10);
-        $jenisKeripik = JenisKeripik::orderBy('nama_jenis')->get();
-        $bahanBaku = BahanBaku::orderBy('nama_bahan')->get();
-
-        return view('komposisi.index', compact('komposisi', 'jenisKeripik', 'bahanBaku'));
+        return view('komposisi.index', compact('jenisKeripik'));
     }
 
     /**
@@ -62,17 +59,18 @@ class KomposisiController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-   public function store(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'jenis_keripik_id' => 'required|exists:jenis_keripik,id',
             'bahan_baku_id' => 'required|array|min:1',
             'bahan_baku_id.*' => 'exists:bahan_baku,id',
             'jumlah' => 'required|array',
-            'jumlah.*' => 'required|numeric|min:0.01'
+            'jumlah.*' => 'required|numeric|min:0.01',
+            'stok_awal' => 'nullable|integer|min:0'
         ]);
 
-        // Cek duplikasi
+        // Cek duplikasi komposisi
         foreach ($request->bahan_baku_id as $bahanId) {
             $exists = Komposisi::where('jenis_keripik_id', $request->jenis_keripik_id)
                 ->where('bahan_baku_id', $bahanId)
@@ -87,48 +85,84 @@ class KomposisiController extends Controller
 
         \DB::beginTransaction();
         try {
-            // Simpan komposisi untuk setiap bahan yang dipilih
+            // Ambil data jenis keripik
+            $jenisKeripik = JenisKeripik::find($request->jenis_keripik_id);
+            $stokAwal = $request->stok_awal ?? 0;
+
+            // 1. Simpan komposisi dan kurangi stok bahan baku
             foreach ($request->bahan_baku_id as $bahanId) {
                 $jumlahDibutuhkan = $request->jumlah[$bahanId];
                 
-                // 1. Simpan komposisi
+                // Simpan komposisi
                 Komposisi::create([
                     'jenis_keripik_id' => $request->jenis_keripik_id,
                     'bahan_baku_id' => $bahanId,
                     'jumlah_dibutuhkan' => $jumlahDibutuhkan
                 ]);
 
-                // 2. Update stok bahan baku
-                $stok = StokBahanBaku::where('bahan_baku_id', $bahanId)->first();
+                // Update stok bahan baku
+                $stokBahan = StokBahanBaku::where('bahan_baku_id', $bahanId)->first();
                 
-                if (!$stok) {
+                if (!$stokBahan) {
                     throw new \Exception("Stok untuk bahan baku ID {$bahanId} tidak ditemukan!");
                 }
 
-                // Cek apakah stok mencukupi
-                if ($stok->jumlah_stok < $jumlahDibutuhkan) {
+                if ($stokBahan->jumlah_stok < $jumlahDibutuhkan) {
                     throw new \Exception(
                         "Stok tidak mencukupi! " .
-                        "Bahan: {$stok->bahanBaku->nama_bahan}, " .
-                        "Stok tersedia: {$stok->jumlah_stok}, " .
+                        "Bahan: {$stokBahan->bahanBaku->nama_bahan}, " .
+                        "Stok tersedia: {$stokBahan->jumlah_stok}, " .
                         "Dibutuhkan: {$jumlahDibutuhkan}"
                     );
                 }
 
-                // Kurangi stok
-                $stokSebelum = $stok->jumlah_stok;
-                $stok->jumlah_stok -= $jumlahDibutuhkan;
-                $stok->jumlah_keluar += $jumlahDibutuhkan;
-                $stok->tanggal_update = now();
-                $stok->save();
+                // Kurangi stok bahan baku
+                $stokBahan->jumlah_stok -= $jumlahDibutuhkan;
+                $stokBahan->jumlah_keluar += $jumlahDibutuhkan;
+                $stokBahan->tanggal_update = now();
+                $stokBahan->save();
 
+              
+            }
+
+            // 2. Tambah stok keripik (berdasarkan ID jenis keripik yang unik)
+            if ($stokAwal > 0) {
+                // Cek apakah stok keripik sudah ada
+                $stokKeripik = StokeKeripik::where('jenis_keripik_id', $request->jenis_keripik_id)->first();
                 
+                if (!$stokKeripik) {
+                    // Buat stok keripik baru dengan kode unik
+                    $kodeKeripik = StokeKeripik::generateKode(
+                        $request->jenis_keripik_id, 
+                        $jenisKeripik->berat
+                    );
+                    
+                    $stokKeripik = StokeKeripik::create([
+                        'jenis_keripik_id' => $request->jenis_keripik_id,
+                        'kode_keripik' => $kodeKeripik,
+                        'jumlah_stok' => $stokAwal,
+                        'jumlah_masuk' => $stokAwal,
+                        'jumlah_keluar' => 0,
+                        'tanggal_update' => now()
+                    ]);
+
+                    
+                } else {
+                    // Tambah stok yang sudah ada
+                    $stokSebelum = $stokKeripik->jumlah_stok;
+                    $stokKeripik->jumlah_stok += $stokAwal;
+                    $stokKeripik->jumlah_masuk += $stokAwal;
+                    $stokKeripik->tanggal_update = now();
+                    $stokKeripik->save();
+
+                   
+                }
             }
 
             \DB::commit();
 
             return redirect()->route('komposisi.index')
-                ->with('success', 'Komposisi berhasil ditambahkan dan stok telah diperbarui!');
+                ->with('success', 'Komposisi berhasil ditambahkan! Stok ' . $jenisKeripik->nama_lengkap . ' bertambah ' . $stokAwal . ' pcs.');
 
         } catch (\Exception $e) {
             \DB::rollback();

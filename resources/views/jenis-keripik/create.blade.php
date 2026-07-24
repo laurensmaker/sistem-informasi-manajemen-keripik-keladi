@@ -97,24 +97,7 @@
                     @error('berat')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-                </div>
-
-                  <div class="col-lg-6 mb-3">
-                    <label for="stok_awal" class="form-label">Stok Awal</label>
-                    <div class="input-group">
-                        <input type="number" 
-                               name="stok_awal" 
-                               id="stok_awal" 
-                               class="form-control @error('stok_awal') is-invalid @enderror" 
-                               value="{{ old('stok_awal') }}"
-                               placeholder="Masukkan stok awal" >
-                        <span class="input-group-text">Unit</span>
-                    </div>
-                    <small class="text-muted">Kosongkan atau isi 0 jika tidak ada stok awal</small>
-                    @error('stok_awal')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
+                </div>                 
 
                 <div class="col-lg-12 mb-3">
                     <label for="deskripsi" class="form-label">Deskripsi</label>

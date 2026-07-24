@@ -61,15 +61,17 @@
                                 <option value="">Pilih Produk</option>
                                 @foreach($jenisKeripik as $item)
                                     @php
-                                        $stok = $item->stokKeripik->first();
+                                        // Ambil stok dengan aman menggunakan optional helper
+                                        $stok = optional($item->stok);
+                                        $stokTersedia = $stok->jumlah_stok ?? 0;
                                     @endphp
                                     <option value="{{ $item->id }}" 
                                             data-harga="{{ $item->harga_jual }}"
-                                            data-stok="{{ $stok->jumlah_stok ?? 0 }}"
+                                            data-stok="{{ $stokTersedia }}"
                                             data-nama="{{ $item->nama_jenis }}">
-                                        {{ $item->nama_jenis }} - 
+                                        {{ $item->nama_jenis }} ({{ $item->berat ?? 0 }} Gram) - 
                                         Rp {{ number_format($item->harga_jual, 0, ',', '.') }} 
-                                        (Stok: {{ $stok->jumlah_stok ?? 0 }})
+                                        (Stok: {{ number_format($stokTersedia, 0, ',', '.') }})
                                     </option>
                                 @endforeach
                             </select>
@@ -146,20 +148,13 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // ============================================
-    // PASTIKAN SEMUA ELEMENT SUDAH LOAD
-    // ============================================
     document.addEventListener('DOMContentLoaded', function() {
         console.log('DOM Ready - Inisialisasi Form Penjualan');
         
-        // Inisialisasi feather icons
         if (typeof feather !== 'undefined') {
             feather.replace();
         }
 
-        // ============================================
-        // VARIABEL GLOBAL
-        // ============================================
         let itemIndex = 1;
         const container = document.getElementById('items-container');
         const totalHargaEl = document.getElementById('total-harga');
@@ -167,17 +162,11 @@
         const btnSubmit = document.getElementById('btnSubmit');
         const btnAddItem = document.getElementById('add-item');
 
-        // ============================================
-        // FUNGSI FORMAT RUPIAH
-        // ============================================
         function formatRupiah(angka) {
             if (isNaN(angka) || angka === 0) return '0';
             return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
 
-        // ============================================
-        // FUNGSI HITUNG SUBTOTAL PER ROW
-        // ============================================
         function calculateSubtotal(row) {
             const hargaInput = row.querySelector('.harga-produk');
             const jumlahInput = row.querySelector('.jumlah-produk');
@@ -192,9 +181,6 @@
             calculateTotal();
         }
 
-        // ============================================
-        // FUNGSI HITUNG TOTAL SEMUA
-        // ============================================
         function calculateTotal() {
             let total = 0;
             const subtotalInputs = document.querySelectorAll('.subtotal-produk');
@@ -207,26 +193,20 @@
             totalHargaEl.textContent = 'Rp ' + formatRupiah(total);
         }
 
-        // ============================================
-        // FUNGSI TAMBAH ROW PRODUK
-        // ============================================
         function addItemRow() {
             console.log('Tambah item ke-' + itemIndex);
             
             const firstRow = container.querySelector('.item-row');
             const newRow = firstRow.cloneNode(true);
             
-            // Reset semua input di row baru
             const inputs = newRow.querySelectorAll('input');
             inputs.forEach(function(el) {
                 el.value = '';
             });
             
-            // Reset select
             const select = newRow.querySelector('.produk-select');
             select.value = '';
             
-            // Set nilai default
             const hargaInput = newRow.querySelector('.harga-produk');
             const jumlahInput = newRow.querySelector('.jumlah-produk');
             const subtotalInput = newRow.querySelector('.subtotal-produk');
@@ -239,10 +219,8 @@
             jumlahInput.dataset.maxStok = 0;
             jumlahInput.removeAttribute('max');
             
-            // Tampilkan tombol hapus
             removeBtn.style.display = 'inline-block';
             
-            // Update name attributes
             const allElements = newRow.querySelectorAll('[name^="items[0]"]');
             allElements.forEach(function(el) {
                 const name = el.getAttribute('name');
@@ -251,10 +229,8 @@
                 }
             });
             
-            // Update data-index
             newRow.dataset.index = itemIndex;
             
-            // Hapus class is-invalid jika ada
             newRow.querySelectorAll('.is-invalid').forEach(function(el) {
                 el.classList.remove('is-invalid');
             });
@@ -266,9 +242,6 @@
             console.log('Item berhasil ditambahkan. Total item: ' + document.querySelectorAll('.item-row').length);
         }
 
-        // ============================================
-        // EVENT: CHANGE PRODUK SELECT
-        // ============================================
         container.addEventListener('change', function(e) {
             if (e.target && e.target.classList.contains('produk-select')) {
                 console.log('Produk dipilih:', e.target.value);
@@ -305,9 +278,6 @@
             }
         });
 
-        // ============================================
-        // EVENT: INPUT JUMLAH
-        // ============================================
         container.addEventListener('input', function(e) {
             if (e.target && e.target.classList.contains('jumlah-produk')) {
                 const input = e.target;
@@ -334,21 +304,13 @@
             }
         });
 
-        // ============================================
-        // EVENT: TAMBAH ITEM (BUTTON)
-        // ============================================
         if (btnAddItem) {
             btnAddItem.addEventListener('click', function(e) {
                 e.preventDefault();
                 addItemRow();
             });
-        } else {
-            console.error('Tombol "Tambah Produk" tidak ditemukan!');
         }
 
-        // ============================================
-        // EVENT: HAPUS ITEM
-        // ============================================
         container.addEventListener('click', function(e) {
             const removeBtn = e.target.closest('.remove-item');
             if (removeBtn) {
@@ -368,9 +330,6 @@
             }
         });
 
-        // ============================================
-        // EVENT: SUBMIT FORM
-        // ============================================
         if (form) {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -379,7 +338,6 @@
                 let valid = true;
                 let errorMessage = '';
                 
-                // Validasi produk
                 const produkSelects = document.querySelectorAll('.produk-select');
                 produkSelects.forEach(function(el) {
                     if (!el.value) {
@@ -391,7 +349,6 @@
                     }
                 });
 
-                // Validasi jumlah
                 const jumlahInputs = document.querySelectorAll('.jumlah-produk');
                 jumlahInputs.forEach(function(el) {
                     const jumlah = parseInt(el.value) || 0;
@@ -404,7 +361,6 @@
                     }
                 });
 
-                // Validasi nama pembeli
                 const namaPembeli = document.getElementById('nama_pembeli');
                 if (!namaPembeli.value.trim()) {
                     valid = false;
@@ -423,13 +379,10 @@
                     return;
                 }
 
-                // Disable button
                 btnSubmit.disabled = true;
                 btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memproses...';
 
                 const formData = new FormData(this);
-
-                // Tambahkan CSRF token
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
                 if (csrfToken) {
                     formData.append('_token', csrfToken);
@@ -462,7 +415,7 @@
                     } else {
                         btnSubmit.disabled = false;
                         btnSubmit.innerHTML = '<i data-feather="save"></i> Proses Transaksi';
-                        feather.replace();
+                        if (typeof feather !== 'undefined') feather.replace();
                         
                         Swal.fire({
                             icon: 'error',
@@ -474,7 +427,7 @@
                 .catch(function(error) {
                     btnSubmit.disabled = false;
                     btnSubmit.innerHTML = '<i data-feather="save"></i> Proses Transaksi';
-                    feather.replace();
+                    if (typeof feather !== 'undefined') feather.replace();
                     
                     console.error('Error:', error);
                     Swal.fire({
@@ -484,23 +437,16 @@
                     });
                 });
             });
-        } else {
-            console.error('Form tidak ditemukan!');
         }
 
-        // ============================================
-        // EVENT: RESET FORM
-        // ============================================
         const btnReset = document.getElementById('btnReset');
         if (btnReset) {
             btnReset.addEventListener('click', function(e) {
                 e.preventDefault();
                 console.log('Form direset');
                 
-                // Reset form
                 form.reset();
                 
-                // Reset item rows
                 const rows = container.querySelectorAll('.item-row');
                 rows.forEach(function(row, index) {
                     if (index > 0) {
@@ -508,7 +454,6 @@
                     }
                 });
                 
-                // Reset row pertama
                 const firstRow = container.querySelector('.item-row');
                 if (firstRow) {
                     firstRow.querySelector('.produk-select').value = '';
@@ -518,7 +463,6 @@
                     firstRow.querySelector('.remove-item').style.display = 'none';
                     firstRow.dataset.index = '0';
                     
-                    // Reset name attributes
                     const allElements = firstRow.querySelectorAll('[name^="items[0]"]');
                     allElements.forEach(function(el) {
                         const name = el.getAttribute('name');
@@ -528,13 +472,9 @@
                     });
                 }
                 
-                // Reset index
                 itemIndex = 1;
-                
-                // Hitung ulang total
                 calculateTotal();
                 
-                // Trigger change untuk row pertama
                 const firstSelect = document.querySelector('.produk-select');
                 if (firstSelect) {
                     firstSelect.dispatchEvent(new Event('change'));
@@ -550,9 +490,6 @@
             });
         }
 
-        // ============================================
-        // TRIGGER AWAL UNTUK ROW PERTAMA
-        // ============================================
         const firstSelect = document.querySelector('.produk-select');
         if (firstSelect) {
             console.log('Trigger change untuk row pertama');

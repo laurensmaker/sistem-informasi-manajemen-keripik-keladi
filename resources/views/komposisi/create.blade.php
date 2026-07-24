@@ -3,7 +3,7 @@
 @section('content')
 
 <div class="d-sm-flex justify-content-between align-items-center mb-4">
-    <h3 class="fs-18">Tambah Komposisi Keripik</h3>
+    <h3 class="fs-18">Tambah Produksi Keripik</h3>
     <a href="{{ route('komposisi.index') }}" class="btn btn-secondary btn-sm">
         <i data-feather="arrow-left"></i> Kembali
     </a>
@@ -25,11 +25,26 @@
                         <option value="">Pilih Jenis Keripik</option>
                         @foreach($jenisKeripik as $item)
                             <option value="{{ $item->id }}" {{ old('jenis_keripik_id') == $item->id ? 'selected' : '' }}>
-                                {{ $item->nama_jenis }}
+                                {{ $item->nama_jenis }}-{{ $item->berat }} Gram
                             </option>
                         @endforeach
                     </select>
                     @error('jenis_keripik_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-lg-6 mb-3">
+                    <label for="stok_awal" class="form-label">Stok Jumlah Prduksi</label>
+                    <div class="input-group">
+                        <input type="number" 
+                               name="stok_awal" 
+                               id="stok_awal" 
+                               class="form-control @error('stok_awal') is-invalid @enderror" 
+                               value="{{ old('stok_awal') }}"
+                               placeholder="Masukkan stok jumlah Produksi" >
+                    </div>
+                    @error('stok_awal')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
@@ -60,9 +75,6 @@
                                                 Harga: Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}
                                             </small>
                                             <br>
-                                            {{-- <small class="text-muted">
-                                                Stok: {{ number_format($item->stok->jumlah_stok ?? 0, 2) }}
-                                            </small> --}}
                                         </label>
                                     </div>
                                 </div>

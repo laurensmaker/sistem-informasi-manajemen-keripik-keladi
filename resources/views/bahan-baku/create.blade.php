@@ -26,7 +26,7 @@
                         <option value="Minyak Goreng" {{ old('nama_bahan') == 'Minyak Goreng' ? 'selected' : '' }}>Minyak Goreng </option>
                         <option value="Gula Halus" {{ old('nama_bahan') == 'Gula Halus' ? 'selected' : '' }}>Gula Halus </option>
                         <option value="Garam" {{ old('nama_bahan') == 'Garam' ? 'selected' : '' }}>Garam </option>
-                        {{-- <option value="Bumbu" {{ old('nama_bahan') == 'Bumbu' ? 'selected' : '' }}>Bumbu (30 kg/bulan)</option> --}}
+                        <option value="Bumbu" {{ old('nama_bahan') == 'Bumbu' ? 'selected' : '' }}>Bumbu </option>
                         <option value="Minyak Wijen" {{ old('nama_bahan') == 'Minyak Wijen' ? 'selected' : '' }}>Minyak Wijen </option>
                         <option value="Minyak Tanah" {{ old('nama_bahan') == 'Minyak Tanah' ? 'selected' : '' }}>Minyak Tanah </option>
                         <option value="Royco" {{ old('nama_bahan') == 'Royco' ? 'selected' : '' }}>Royco </option>
@@ -84,7 +84,6 @@
                                min="0"
                                step="1"
                                required>
-                        <span class="input-group-text">Gram</span>
                     </div>
                     @error('berat')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -106,15 +105,14 @@
 
                 {{-- Field Stok Awal --}}
                 <div class="col-lg-6 mb-3">
-                    <label for="stok_awal" class="form-label">Stok Awal</label>
+                    <label for="stok_awal" class="form-label">Stok Awal Masuk</label>
                     <div class="input-group">
                         <input type="number" 
                                name="stok_awal" 
                                id="stok_awal" 
                                class="form-control @error('stok_awal') is-invalid @enderror" 
                                value="{{ old('stok_awal') }}"
-                               placeholder="Masukkan stok awal" >
-                        <span class="input-group-text">Unit</span>
+                               placeholder="Masukkan stok awal Masuk" >
                     </div>
                     <small class="text-muted">Kosongkan atau isi 0 jika tidak ada stok awal</small>
                     @error('stok_awal')

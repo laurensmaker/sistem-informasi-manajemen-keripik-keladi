@@ -58,15 +58,15 @@ class PenjualanController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-   public function create()
+    public function create()
     {
-        // Ambil semua jenis keripik dengan stok terakhir
-        $jenisKeripik = JenisKeripik::with(['stokKeripik' => function($query) {
-            $query->latest('tanggal_update');
-        }])->get();
-        
-        $noTransaksi = Penjualan::generateNoTransaksi();
-        
+        // Generate no transaksi
+        $lastPenjualan = Penjualan::orderBy('id', 'desc')->first();
+        $noTransaksi = 'TRX-' . date('Ymd') . '-' . str_pad(($lastPenjualan ? $lastPenjualan->id + 1 : 1), 4, '0', STR_PAD_LEFT);
+
+        // Ambil jenis keripik dengan stok menggunakan with (eager loading)
+        $jenisKeripik = JenisKeripik::with('stok')->get();
+
         return view('penjualan.create', compact('jenisKeripik', 'noTransaksi'));
     }
 

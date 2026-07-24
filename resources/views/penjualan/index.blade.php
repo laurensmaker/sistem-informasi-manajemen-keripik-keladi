@@ -5,9 +5,9 @@
 <div class="d-sm-flex justify-content-between align-items-center mb-4">
     <h3 class="fs-18">Data Penjualan</h3>
     <div>
-        <a href="{{ route('penjualan.laporan') }}" class="btn btn-info btn-sm">
+        {{-- <a href="{{ route('penjualan.laporan') }}" class="btn btn-info btn-sm">
             <i data-feather="file-text"></i> Laporan
-        </a>
+        </a> --}}
         <a href="{{ route('penjualan.create') }}" class="btn btn-primary btn-sm">
             <i data-feather="plus"></i> Transaksi Baru
         </a>
@@ -110,7 +110,7 @@
                         <th>No. Transaksi</th>
                         <th>Tanggal</th>
                         <th>Pembeli</th>
-                        <th>Total Harga</th>
+                        <th>Total</th>
                         <th>Status</th>
                         <th>Kasir</th>
                         <th>Aksi</th>

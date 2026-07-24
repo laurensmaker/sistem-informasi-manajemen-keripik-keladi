@@ -17,8 +17,8 @@
                 </div>
                 <h5 class="fw-bold">Laporan Penjualan</h5>
                 <p class="text-muted small">Download laporan penjualan berdasarkan periode</p>
-                <a href="{{ route('laporan.penjualan.download') }}" class="btn btn-success btn-sm">
-                    <i data-feather="download"></i> Download PDF
+                <a href="{{ route('laporan.penjualan') }}" class="btn btn-primary btn-sm w-100">
+                    <i data-feather="file-text"></i> Lihat Laporan
                 </a>
             </div>
         </div>
@@ -33,8 +33,8 @@
                 </div>
                 <h5 class="fw-bold">Laporan Jenis Keripik</h5>
                 <p class="text-muted small">Download laporan jenis keripik dengan stok</p>
-                <a href="{{ route('laporan.jenis-keripik.download') }}" class="btn btn-success btn-sm">
-                    <i data-feather="download"></i> Download PDF
+                 <a href="{{ route('laporan.jenis-keripik') }}" class="btn btn-success btn-sm w-100">
+                    <i data-feather="file-text"></i> Lihat Laporan
                 </a>
             </div>
         </div>
@@ -49,8 +49,8 @@
                 </div>
                 <h5 class="fw-bold">Laporan Bahan Baku</h5>
                 <p class="text-muted small">Download laporan bahan baku dengan stok</p>
-               <a href="{{ route('laporan.bahan-baku.download') }}" class="btn btn-success btn-sm">
-                    <i data-feather="download"></i> Download PDF
+                <a href="{{ route('laporan.bahan-baku') }}" class="btn btn-warning btn-sm w-100">
+                    <i data-feather="file-text"></i> Lihat Laporan
                 </a>
             </div>
         </div>

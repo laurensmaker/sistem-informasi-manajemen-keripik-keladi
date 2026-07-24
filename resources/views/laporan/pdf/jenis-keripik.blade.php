@@ -142,10 +142,10 @@
             <div class="label">Total Jenis Keripik</div>
             <div class="value">{{ $totalJenis }}</div>
         </div>
-        <div class="summary-item">
+        {{-- <div class="summary-item">
             <div class="label">Total Stok Tersedia</div>
             <div class="value">{{ number_format($totalStok) }}</div>
-        </div>
+        </div> --}}
     </div>
 
     <table class="table">
@@ -159,7 +159,7 @@
                 <th class="col-stok text-center">Stok</th>
                 <th class="col-masuk text-center">Masuk</th>
                 <th class="col-keluar text-center">Keluar</th>
-                <th class="col-bahan text-center">Bahan</th>
+                {{-- <th class="col-bahan text-center">Bahan</th> --}}
             </tr>
         </thead>
         <tbody>
@@ -177,7 +177,7 @@
                 </td>
                 <td class="text-center">{{ number_format($item->stok->jumlah_masuk ?? 0) }}</td>
                 <td class="text-center">{{ number_format($item->stok->jumlah_keluar ?? 0) }}</td>
-                <td class="text-center">{{ $item->komposisi->count() }}</td>
+                {{-- <td class="text-center">{{ $item->komposisi->count() }}</td> --}}
             </tr>
             @empty
             <tr>
@@ -186,7 +186,7 @@
             @endforelse
             <tr class="total-row">
                 <td colspan="5" class="text-right">Total Keseluruhan</td>
-                <td class="text-center">{{ number_format($totalStok) }}</td>
+                {{-- <td class="text-center">{{ number_format($totalStok) }}</td> --}}
                 <td colspan="3"></td>
             </tr>
         </tbody>

@@ -15,27 +15,14 @@ class StokKeripikController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+     public function index()
     {
-        $query = StokeKeripik::with(['jenisKeripik']);
+        // Ambil semua stok keripik dengan relasi jenis keripik
+        $stokKeripik = StokeKeripik::with('jenisKeripik')
+            ->orderBy('tanggal_update', 'desc')
+            ->paginate(10);
 
-        // Filter berdasarkan jenis keripik
-        if ($request->filled('jenis_keripik_id')) {
-            $query->where('jenis_keripik_id', $request->jenis_keripik_id);
-        }
-
-        // Filter berdasarkan tanggal
-        if ($request->filled('start_date')) {
-            $query->whereDate('tanggal_update', '>=', $request->start_date);
-        }
-        if ($request->filled('end_date')) {
-            $query->whereDate('tanggal_update', '<=', $request->end_date);
-        }
-
-        $stokKeripik = $query->latest('tanggal_update')->paginate(10);
-        $jenisKeripik = JenisKeripik::orderBy('nama_jenis')->get();
-
-        return view('stok-keripik.index', compact('stokKeripik', 'jenisKeripik'));
+        return view('stok-keripik.index', compact('stokKeripik'));
     }
 
     /**
