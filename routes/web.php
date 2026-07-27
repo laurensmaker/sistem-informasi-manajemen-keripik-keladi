@@ -50,6 +50,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('komposisi/laporan', [KomposisiController::class, 'laporan'])->name('komposisi.laporan');
     Route::get('komposisi/biaya-produksi', [KomposisiController::class, 'biayaProduksi'])->name('komposisi.biaya-produksi');
     Route::get('komposisi/get-bahan/{jenisKeripikId}', [KomposisiController::class, 'getBahanByJenis'])->name('komposisi.get-bahan');
+    Route::get('/{kodeProduksi}', [KomposisiController::class, 'show'])->name('komposisi.show');
+
+    Route::delete('/{kodeProduksi}', [KomposisiController::class, 'destroy'])->name('komposisi.destroy');
     
     Route::resource('penjualan', PenjualanController::class);
     

@@ -7,61 +7,53 @@ use Illuminate\Database\Eloquent\Model;
 
 class Komposisi extends Model
 {
-    use HasFactory;
-
-    protected $table = 'komposisi';
-
-    protected $fillable = [
+    public $table = 'komposisi';
+      protected $fillable = [
         'jenis_keripik_id',
         'bahan_baku_id',
         'jumlah_dibutuhkan',
+        'kode_produksi',
+        'jumlah_produksi',
+        'total_biaya',
+        'tanggal_produksi',
+        'user_id',
+        'status_produksi'
     ];
 
     protected $casts = [
-        'jumlah_dibutuhkan' => 'decimal:2',
+        'tanggal_produksi' => 'datetime'
     ];
 
-    // Relasi ke JenisKeripik
     public function jenisKeripik()
     {
-        return $this->belongsTo(JenisKeripik::class, 'jenis_keripik_id');
+        return $this->belongsTo(JenisKeripik::class);
     }
 
-    // Relasi ke BahanBaku
     public function bahanBaku()
     {
-        return $this->belongsTo(BahanBaku::class, 'bahan_baku_id');
+        return $this->belongsTo(BahanBaku::class);
     }
 
-    // Accessor untuk format jumlah
-    public function getJumlahDibutuhkanFormattedAttribute()
+    public function user()
     {
-        return number_format($this->jumlah_dibutuhkan, 2, ',', '.');
+        return $this->belongsTo(User::class);
     }
 
-    // Accessor untuk total biaya (jumlah * harga satuan bahan)
-    public function getTotalBiayaAttribute()
+    // Generate kode produksi otomatis
+    public static function generateKodeProduksi()
     {
-        if ($this->bahanBaku) {
-            return $this->jumlah_dibutuhkan * $this->bahanBaku->harga_satuan;
-        }
-        return 0;
+        $prefix = 'PRD';
+        $date = date('Ymd');
+        $last = self::whereDate('tanggal_produksi', today())
+            ->whereNotNull('kode_produksi')
+            ->count();
+        $number = str_pad($last + 1, 4, '0', STR_PAD_LEFT);
+        return $prefix . $date . $number;
     }
 
-    public function getTotalBiayaFormattedAttribute()
+    // Accessor
+    public function getTanggalProduksiFormattedAttribute()
     {
-        return 'Rp ' . number_format($this->total_biaya, 0, ',', '.');
-    }
-
-    // Scope untuk filter berdasarkan jenis keripik
-    public function scopeByJenisKeripik($query, $jenisKeripikId)
-    {
-        return $query->where('jenis_keripik_id', $jenisKeripikId);
-    }
-
-    // Scope untuk filter berdasarkan bahan baku
-    public function scopeByBahanBaku($query, $bahanBakuId)
-    {
-        return $query->where('bahan_baku_id', $bahanBakuId);
+        return $this->tanggal_produksi ? $this->tanggal_produksi->format('d/m/Y H:i') : '-';
     }
 }
