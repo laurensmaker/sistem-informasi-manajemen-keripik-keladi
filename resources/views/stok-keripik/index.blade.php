@@ -83,7 +83,7 @@
                         </tr>
                     @endforelse
                 </tbody>
-                <tfoot>
+                {{-- <tfoot>
                     <tr class="table-light fw-bold">
                         <td colspan="4" class="text-end">Total Keseluruhan</td>
                         <td>
@@ -95,7 +95,7 @@
                         <td>{{ number_format($stokKeripik->sum('jumlah_keluar'), 0, ',', '.') }}</td>
                         <td></td>
                     </tr>
-                </tfoot>
+                </tfoot> --}}
             </table>
         </div>
 
