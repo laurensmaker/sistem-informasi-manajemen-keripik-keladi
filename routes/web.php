@@ -43,18 +43,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('stok-bahan-baku/laporan', [StokBahanBakuController::class, 'laporan'])->name('stok-bahan-baku.laporan');
     Route::get('stok-bahan-baku/dashboard', [StokBahanBakuController::class, 'dashboard'])->name('stok-bahan-baku.dashboard');
     Route::get('stok-bahan-baku/get-stok/{bahanBakuId}', [StokBahanBakuController::class, 'getStokByBahan'])->name('stok-bahan-baku.get-stok');
-    
-    Route::resource('komposisi', KomposisiController::class);
-    
-    // Route tambahan untuk komposisi
-    Route::get('komposisi/laporan', [KomposisiController::class, 'laporan'])->name('komposisi.laporan');
-    Route::get('komposisi/biaya-produksi', [KomposisiController::class, 'biayaProduksi'])->name('komposisi.biaya-produksi');
-    Route::get('komposisi/get-bahan/{jenisKeripikId}', [KomposisiController::class, 'getBahanByJenis'])->name('komposisi.get-bahan');
-    Route::get('/{kodeProduksi}', [KomposisiController::class, 'show'])->name('komposisi.show');
-
-    Route::delete('/{kodeProduksi}', [KomposisiController::class, 'destroy'])->name('komposisi.destroy');
-    
     Route::resource('penjualan', PenjualanController::class);
+   
+    
+    
+    
     
     // Route tambahan untuk penjualan
     Route::get('penjualan/laporan', [PenjualanController::class, 'laporan'])->name('penjualan.laporan');
@@ -84,4 +77,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/bahan-baku', [LaporanController::class, 'laporanBahanBaku'])->name('laporan.bahan-baku');
         Route::get('/bahan-baku/download', [LaporanController::class, 'downloadBahanBakuPDF'])->name('laporan.bahan-baku.download');
     });
+     Route::resource('komposisi', KomposisiController::class);
+    
+    // Route tambahan untuk komposisi
+    Route::get('komposisi/laporan', [KomposisiController::class, 'laporan'])->name('komposisi.laporan');
+    Route::get('komposisi/biaya-produksi', [KomposisiController::class, 'biayaProduksi'])->name('komposisi.biaya-produksi');
+    Route::get('komposisi/get-bahan/{jenisKeripikId}', [KomposisiController::class, 'getBahanByJenis'])->name('komposisi.get-bahan');
+    Route::get('/{kodeProduksi}', [KomposisiController::class, 'show'])->name('komposisi.show');
+
+    Route::delete('/{kodeProduksi}', [KomposisiController::class, 'destroy'])->name('komposisi.destroy');
 });

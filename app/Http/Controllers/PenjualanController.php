@@ -19,6 +19,7 @@ class PenjualanController extends Controller
      */
     public function index(Request $request)
     {
+        // dd($request->all());
         $query = Penjualan::with(['user', 'details.jenisKeripik']);
 
         // Filter status
